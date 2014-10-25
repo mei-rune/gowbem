@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<CIM CIMVERSION="2.0" DTDVERSION="2.0">
+  <MESSAGE ID="0" PROTOCOLVERSION="1.0">
+    <SIMPLERSP>
+      <IMETHODRESPONSE NAME="CreateInstance">
+        <IRETURNVALUE>
+          <INSTANCENAME CLASSNAME="CIM_DummyInstance">
+            <KEYBINDING NAME="StringProperty">
+              <KEYVALUE VALUETYPE="string">String</KEYVALUE>
+            </KEYBINDING>
+            <KEYBINDING NAME="IntegerProperty">
+              <KEYVALUE VALUETYPE="numeric">42</KEYVALUE>
+            </KEYBINDING>
+            <KEYBINDING NAME="BooleanProperty">
+              <KEYVALUE VALUETYPE="boolean">true</KEYVALUE>
+            </KEYBINDING>
+          </INSTANCENAME>
+        </IRETURNVALUE>
+      </IMETHODRESPONSE>
+    </SIMPLERSP>
+  </MESSAGE>
+</CIM>

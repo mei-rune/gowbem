@@ -1,0 +1,45 @@
+
+instance of OpenWBEM_RemoteProviderRegistration
+{
+        InstanceID = "test1";
+        NamespaceName = "root/remotetest";
+        ClassName = "instancetest";
+        ProviderTypes = { 1 }; // instance
+        Url = "http://localhost:10001";
+        AlwaysSendCredentials = false;
+        UseConnectionCredentials = false;
+};
+
+instance of OpenWBEM_RemoteProviderRegistration
+{
+        InstanceID = "test2";
+        NamespaceName = "root/remotetest";
+        ClassName = "instancetest";
+        ProviderTypes = { 2 }; // secondary instance
+        Url = "http://localhost:10002";
+        AlwaysSendCredentials = false;
+        UseConnectionCredentials = false;
+};
+
+instance of OpenWBEM_RemoteProviderRegistration
+{
+        InstanceID = "test3";
+        NamespaceName = "root/remotetest";
+        ClassName = "assoctest";
+        ProviderTypes = { 3 }; // associator
+        Url = "http://localhost:10003";
+        AlwaysSendCredentials = false;
+        UseConnectionCredentials = false;
+};
+
+instance of OpenWBEM_RemoteProviderRegistration
+{
+        InstanceID = "test4";
+        NamespaceName = "root/remotetest";
+        ClassName = "methodtest";
+        ProviderTypes = { 5 }; // method
+        Url = "http://localhost:10004";
+        AlwaysSendCredentials = false;
+        UseConnectionCredentials = false;
+};
+

@@ -1,0 +1,24 @@
+class EXP_BionicComputerSystem:CIM_ComputerSystem
+{
+boolean OptionalArg;
+};
+
+
+INSTANCE OF EXP_BionicComputerSystem
+{
+CreationClassName="EXP_BionicComputerSystem";
+Name="SixMillion";
+};
+
+INSTANCE OF EXP_BionicComputerSystem
+{
+CreationClassName="EXP_BionicComputerSystem";
+Name="SevenMillion";
+};
+
+INSTANCE OF CIM_SystemComponent
+{
+GroupComponent = "EXP_BionicComputerSystem.CreationClassName=\"EXP_BionicComputerSystem\",Name=\"SevenMillion\"";
+PartComponent = "EXP_BionicComputerSystem.CreationClassName=\"EXP_BionicComputerSystem\",Name=\"SixMillion\"";
+};
+

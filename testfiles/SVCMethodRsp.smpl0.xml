@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<CIM CIMVERSION="2.0" DTDVERSION="2.0">
+	<MESSAGE ID="520451" PROTOCOLVERSION="1.0">
+		<SIMPLERSP>
+			<METHODRESPONSE NAME="CreateAccount">
+				<RETURNVALUE>
+					<VALUE TYPE="uint32">0</VALUE>
+				</RETURNVALUE>
+				<PARAMVALUE NAME="Account" PARAMTYPE="reference">
+					<VALUE.REFERENCE>
+						<INSTANCEPATH>
+							<NAMESPACEPATH>
+								<HOST>CL3E2289</HOST>
+								<LOCALNAMESPACEPATH>
+									<NAMESPACE NAME="root"></NAMESPACE>
+									<NAMESPACE NAME="ibm"></NAMESPACE>
+								</LOCALNAMESPACEPATH>
+							</NAMESPACEPATH>
+							<INSTANCENAME CLASSNAME="IBMTS_Account">
+								<KEYBINDING NAME="SystemName">
+									<KEYVALUE VALUETYPE="string">icat</KEYVALUE>
+								</KEYBINDING>
+								<KEYBINDING NAME="SystemCreationClassName">
+									<KEYVALUE VALUETYPE="string">IBMTS_Account</KEYVALUE>
+								</KEYBINDING>
+								<KEYBINDING NAME="Name">
+									<KEYVALUE VALUETYPE="string">dummy1</KEYVALUE>
+								</KEYBINDING>
+								<KEYBINDING NAME="CreationClassName">
+									<KEYVALUE VALUETYPE="string">IBMTS_Account</KEYVALUE>
+								</KEYBINDING>
+							</INSTANCENAME>
+						</INSTANCEPATH>
+					</VALUE.REFERENCE>
+				</PARAMVALUE>
+			</METHODRESPONSE>
+		</SIMPLERSP>
+	</MESSAGE>
+</CIM>

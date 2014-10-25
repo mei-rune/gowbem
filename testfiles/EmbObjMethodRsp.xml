@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<CIM CIMVERSION="2.0" DTDVERSION="2.0">
+	<MESSAGE ID="4" PROTOCOLVERSION="1.0">
+		<SIMPLERSP>
+			<METHODRESPONSE NAME="SampleMethodResponse">
+				<RETURNVALUE PARAMTYPE="string" EmbeddedObject="instance">
+					<VALUE>&lt;INSTANCE &#32;CLASSNAME=&quot;TestCMPI_Instance&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;ElementName&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/INSTANCE&gt;&#10;</VALUE>
+				</RETURNVALUE>
+				<PARAMVALUE NAME="EmbInstAttrParamWithValue" PARAMTYPE="string" EMBEDDEDOBJECT="instance">
+					<VALUE>&lt;INSTANCE &#32;CLASSNAME=&quot;TestCMPI_Instance&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;ElementName&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/INSTANCE&gt;&#10;</VALUE>
+				</PARAMVALUE>
+				<PARAMVALUE NAME="EmbObjAttrParam" PARAMTYPE="string" EmbeddedObject="object">
+				</PARAMVALUE>
+				<PARAMVALUE NAME="EmbInstAttrParamArrayWithValue" PARAMTYPE="string" EMBEDDEDOBJECT="instance">
+					<VALUE.ARRAY>
+						<VALUE></VALUE>
+						<VALUE>&lt;INSTANCE &#32;CLASSNAME=&quot;TestCMPI_Instance&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;ElementName&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/INSTANCE&gt;&#10;</VALUE>
+						<VALUE>&lt;INSTANCE &#32;CLASSNAME=&quot;TestCMPI_Instance&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;ElementName&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/INSTANCE&gt;&#10;</VALUE>
+					</VALUE.ARRAY>
+				</PARAMVALUE>
+			</METHODRESPONSE>
+		</SIMPLERSP>
+	</MESSAGE>
+</CIM>

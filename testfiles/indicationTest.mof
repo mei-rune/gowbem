@@ -1,0 +1,18 @@
+
+
+ 
+[ Description("This is our test class that is just a dummy device") ]
+class OW_IndicationProviderTest1 : CIM_LogicalDevice
+{
+};
+
+[ Description("This is our test class that is just a dummy device") ]
+class OW_IndicationProviderTest2 : CIM_LogicalDevice
+{
+};
+
+[ Description("This is our test class that is just a dummy device") ]
+class OW_IndicationProviderTest3 : CIM_LogicalDevice
+{
+};
+

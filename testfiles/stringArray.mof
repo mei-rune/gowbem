@@ -1,0 +1,14 @@
+class simple {
+
+[read, key]
+sint32 clave;
+
+[read, ArrayType("Indexed")]
+string env[];
+};
+
+instance of simple {
+clave = 1234;
+env = {"cad1", "cad2", "cad3"};
+};
+

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CIM CIMVERSION="2.0" DTDVERSION="2.0">
+  <MESSAGE ID="3" PROTOCOLVERSION="1.0">
+    <SIMPLERSP>
+      <IMETHODRESPONSE NAME="GetClass">
+        <IRETURNVALUE>
+          <CLASS NAME="TestClass">
+            <PROPERTY NAME="EmbInstWithQualiAndValue" TYPE="string">
+              <QUALIFIER NAME="EmbeddedInstance" TYPE="string">
+                <VALUE>TestCMPI_Instance</VALUE>
+              </QUALIFIER>
+              <VALUE>&lt;INSTANCE &#32;CLASSNAME=&quot;TestCMPI_Instance&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;ElementName&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/INSTANCE&gt;&#10;</VALUE>
+            </PROPERTY>
+            <PROPERTY NAME="EmbInstWithQuali" TYPE="string">
+              <QUALIFIER NAME="EmbeddedInstance" TYPE="string">
+                <VALUE>TestCMPI_Instance</VALUE>
+              </QUALIFIER>
+            </PROPERTY>
+            <PROPERTY NAME="EmbObjWithQualiAndValue" TYPE="string">
+              <QUALIFIER NAME="EmbeddedObject" TYPE="boolean">
+                <VALUE>TRUE</VALUE>
+              </QUALIFIER>
+              <VALUE>&lt;CLASS &#32;NAME=&quot;MyTestClass&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;KeyProp&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/CLASS&gt;&#10;</VALUE>
+            </PROPERTY>
+            <PROPERTY NAME="EmbObjWithQuali" TYPE="string">
+              <QUALIFIER NAME="EmbeddedObject" TYPE="boolean">
+                <VALUE>TRUE</VALUE>
+              </QUALIFIER>
+            </PROPERTY>
+            <PROPERTY.ARRAY NAME="EmbInstAWithQualiAndValue" TYPE="string">
+              <QUALIFIER NAME="EmbeddedInstance" TYPE="string">
+                <VALUE>TestCMPI_Instance</VALUE>
+              </QUALIFIER>
+              <VALUE.ARRAY>
+                <VALUE>&lt;INSTANCE &#32;CLASSNAME=&quot;TestCMPI_Instance&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;ElementName&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/INSTANCE&gt;&#10;</VALUE>
+                <VALUE>&lt;INSTANCE &#32;CLASSNAME=&quot;TestCMPI_Instance&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;ElementName&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/INSTANCE&gt;&#10;</VALUE>
+              </VALUE.ARRAY>
+            </PROPERTY.ARRAY>
+            <PROPERTY.ARRAY NAME="EmbObjAWithQualiAndValue" TYPE="string">
+              <QUALIFIER NAME="EmbeddedObject" TYPE="boolean">
+                <VALUE>TRUE</VALUE>
+              </QUALIFIER>
+              <VALUE.ARRAY>
+                <VALUE>&lt;CLASS &#32;NAME=&quot;MyTestClass&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;KeyProp&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/CLASS&gt;&#10;</VALUE>
+                <VALUE>&lt;CLASS &#32;NAME=&quot;MyTestClass&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;KeyProp&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/CLASS&gt;&#10;</VALUE>
+              </VALUE.ARRAY>
+            </PROPERTY.ARRAY>
+            <METHOD NAME="MethodWithQuali" TYPE="string">
+              <QUALIFIER NAME="EmbeddedObject" TYPE="boolean">
+                <VALUE>TRUE</VALUE>
+              </QUALIFIER>
+              <PARAMETER NAME="ParamWithQuali" TYPE="string">
+                <QUALIFIER NAME="EmbeddedObject" TYPE="boolean">
+                  <VALUE>TRUE</VALUE>
+                </QUALIFIER>
+              </PARAMETER>
+              <PARAMETER NAME="ParamWithEmbInstQuali" TYPE="string">
+                <QUALIFIER NAME="EmbeddedInstance" TYPE="string">
+                  <VALUE>CIMLofasz</VALUE>
+                </QUALIFIER>
+              </PARAMETER>
+              <PARAMETER.ARRAY NAME="ParamAWithEmbInstQuali" TYPE="string">
+                <QUALIFIER NAME="EmbeddedInstance" TYPE="string">
+                  <VALUE>CIMLofasz</VALUE>
+                </QUALIFIER>
+              </PARAMETER.ARRAY>
+            </METHOD>
+          </CLASS>
+        </IRETURNVALUE>
+      </IMETHODRESPONSE>
+    </SIMPLERSP>
+  </MESSAGE>
+</CIM>

@@ -1,0 +1,15 @@
+M-POST /cimom HTTP/1.1
+Host: localhost
+User-Agent: openwbem/3.1.1
+Content-Type: application/xml; charset="utf-8"
+Content-Length: 518
+TE: trailers
+Accept-Encoding: deflate
+Authorization: Basic dGVzdDE6cGFzczE=
+Man: http://www.dmtf.org/cim/mapping/http/v1.0; ns=02
+02-CIMOperation: MethodCall
+02-CIMMethod: GetClass
+02-CIMObject: root%2Ftestsuite
+Accept: application/*
+
+<?xml version="1.0" encoding="utf-8" ?><CIM CIMVERSION="2.0" DTDVERSION="2.0"><MESSAGE ID="1" PROTOCOLVERSION="1.0"><SIMPLEREQ><IMETHODCALL NAME="GetClass"><LOCALNAMESPACEPATH><NAMESPACE NAME="root"></NAMESPACE><NAMESPACE NAME="testsuite"></NAMESPACE></LOCALNAMESPACEPATH><IPARAMVALUE NAME="ClassName"><CLASSNAME NAME="S1"/></IPARAMVALUE><IPARAMVALUE NAME="LocalOnly"><VALUE>FALSE</VALUE></IPARAMVALUE><IPARAMVALUE NAME="IncludeClassOrigin"><VALUE>TRUE</VALUE></IPARAMVALUE></IMETHODCALL></SIMPLEREQ></MESSAGE></CIM>

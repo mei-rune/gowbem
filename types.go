@@ -1,6 +1,12 @@
 package wbem
 
-import "encoding/xml"
+import (
+	"bytes"
+	"encoding/xml"
+	"net/url"
+	"strconv"
+	"strings"
+)
 
 type CIM struct {
 	XMLName     xml.Name        `xml:"CIM"`
@@ -8,6 +14,15 @@ type CIM struct {
 	DtdVersion  string          `xml:"DTDVERSION,attr"`
 	Message     *CimMessage     `xml:"MESSAGE,omitempty"`
 	Declaration *CimDeclaration `xml:"DECLARATION,omitempty"`
+
+	hasFault func(cim *CIM) error
+}
+
+func (cim *CIM) Fault() error {
+	if nil == cim.hasFault {
+		return nil
+	}
+	return cim.hasFault(cim)
 }
 
 //     <!-- Section: Declaration Elements -->
@@ -262,6 +277,37 @@ type CimValueReference struct {
 	InstanceName      *CimInstanceName      `xml:"INSTANCENAME,omitempty"`
 }
 
+func (self *CimValueReference) IsNil() bool {
+	return nil == self.ClassPath ||
+		nil == self.LocalClassPath ||
+		nil == self.ClassName ||
+		nil == self.InstancePath ||
+		nil == self.LocalInstancePath ||
+		nil == self.InstanceName
+}
+
+func (self *CimValueReference) ToString(buf *bytes.Buffer) {
+	if nil != self.ClassPath {
+		self.ClassPath.ToString(buf)
+	} else if nil != self.LocalClassPath {
+		self.LocalClassPath.ToString(buf)
+	} else if nil != self.ClassName {
+		buf.WriteString(self.ClassName.Name)
+	} else if nil != self.InstancePath {
+		self.InstancePath.ToString(buf)
+	} else if nil != self.LocalInstancePath {
+		self.LocalInstancePath.ToString(buf)
+	} else if nil != self.InstanceName {
+		self.InstanceName.ToString(buf)
+	}
+}
+
+func (self *CimValueReference) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
+}
+
 //     <xs:element name="VALUE.REFARRAY">
 //         <xs:annotation>
 //             <xs:documentation>Defines a reference array value.
@@ -446,6 +492,22 @@ type CimNamespacePath struct {
 	LocalNamespacePath CimLocalNamespacePath `xml:"LOCALNAMESPACEPATH"`
 }
 
+func (self *CimNamespacePath) IsNil() bool {
+	return self.LocalNamespacePath.IsNil()
+}
+
+func (self *CimNamespacePath) ToString(buf *bytes.Buffer) {
+	buf.WriteString(self.Host.Value)
+	buf.WriteString("/")
+	self.LocalNamespacePath.ToString(buf)
+}
+
+func (self *CimNamespacePath) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
+}
+
 //     <xs:element name="LOCALNAMESPACEPATH">
 //         <xs:annotation>
 //             <xs:documentation>Defines a local namespace path (one without a host component).
@@ -458,8 +520,26 @@ type CimNamespacePath struct {
 //         </xs:complexType>
 //     </xs:element>
 type CimLocalNamespacePath struct {
-	XMLName   xml.Name       `xml:"LOCALNAMESPACEPATH"`
-	Namespace []CimNamespace `xml:"NAMESPACE"`
+	XMLName    xml.Name       `xml:"LOCALNAMESPACEPATH"`
+	Namespaces []CimNamespace `xml:"NAMESPACE"`
+}
+
+func (self *CimLocalNamespacePath) IsNil() bool {
+	return 0 == len(self.Namespaces)
+}
+
+func (self *CimLocalNamespacePath) ToString(buf *bytes.Buffer) {
+	if 0 != len(self.Namespaces) {
+		for _, nm := range self.Namespaces {
+			buf.WriteString(nm.Name)
+		}
+	}
+}
+
+func (self *CimLocalNamespacePath) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
 }
 
 //     <xs:element name="HOST">
@@ -508,6 +588,22 @@ type CimClassPath struct {
 	ClassName     CimClassName     `xml:"CLASSNAME"`
 }
 
+func (self *CimClassPath) IsNil() bool {
+	return self.NamespacePath.IsNil()
+}
+
+func (self *CimClassPath) ToString(buf *bytes.Buffer) {
+	self.NamespacePath.ToString(buf)
+	buf.WriteRune(':')
+	buf.WriteString(self.ClassName.Name)
+}
+
+func (self *CimClassPath) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
+}
+
 //     <xs:element name="LOCALCLASSPATH">
 //         <xs:annotation>
 //             <xs:documentation>Defines the local path to a CIM class.
@@ -524,6 +620,22 @@ type CimLocalClassPath struct {
 	XMLName       xml.Name              `xml:"LOCALCLASSPATH"`
 	NamespacePath CimLocalNamespacePath `xml:"LOCALNAMESPACEPATH"`
 	ClassName     CimClassName          `xml:"CLASSNAME"`
+}
+
+func (self *CimLocalClassPath) IsNil() bool {
+	return self.NamespacePath.IsNil()
+}
+
+func (self *CimLocalClassPath) ToString(buf *bytes.Buffer) {
+	self.NamespacePath.ToString(buf)
+	buf.WriteRune(':')
+	buf.WriteString(self.ClassName.Name)
+}
+
+func (self *CimLocalClassPath) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
 }
 
 //     <xs:element name="CLASSNAME">
@@ -558,6 +670,26 @@ type CimInstancePath struct {
 	InstanceName  CimInstanceName  `xml:"INSTANCENAME"`
 }
 
+func (self *CimInstancePath) IsNil() bool {
+	return self.NamespacePath.IsNil()
+}
+
+func (self *CimInstancePath) ToString(buf *bytes.Buffer) {
+	self.NamespacePath.ToString(buf)
+	if self.InstanceName.IsTyped() {
+		buf.WriteString("/(instance)")
+	} else {
+		buf.WriteRune(':')
+	}
+	self.InstanceName.ToString(buf)
+}
+
+func (self *CimInstancePath) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
+}
+
 //     <xs:element name="LOCALINSTANCEPATH">
 //         <xs:annotation>
 //             <xs:documentation>Defines the local path to a CIM instance.
@@ -574,6 +706,26 @@ type CimLocalInstancePath struct {
 	XMLName            xml.Name              `xml:"LOCALINSTANCEPATH"`
 	LocalNamespacePath CimLocalNamespacePath `xml:"LOCALNAMESPACEPATH"`
 	InstanceName       CimInstanceName       `xml:"INSTANCENAME"`
+}
+
+func (self *CimLocalInstancePath) IsNil() bool {
+	return self.LocalNamespacePath.IsNil()
+}
+
+func (self *CimLocalInstancePath) ToString(buf *bytes.Buffer) {
+	self.LocalNamespacePath.ToString(buf)
+	if self.InstanceName.IsTyped() {
+		buf.WriteString("/(instance)")
+	} else {
+		buf.WriteRune(':')
+	}
+	self.InstanceName.ToString(buf)
+}
+
+func (self *CimLocalInstancePath) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
 }
 
 //     <xs:element name="INSTANCENAME">
@@ -598,6 +750,75 @@ type CimInstanceName struct {
 	ValueReference *CimValueReference `xml:"VALUE.REFERENCE,omitempty"`
 }
 
+func (self *CimInstanceName) GetClassName() string {
+	return self.ClassName
+}
+
+func (self *CimInstanceName) GetKeyBindings() CIMKeyBindings {
+	if nil != self.KeyBindings {
+		elements := make([]CIMValuedElement, len(self.KeyBindings))
+		for idx, _ := range self.KeyBindings {
+			elements[idx] = &self.KeyBindings[idx]
+		}
+		return CimKeyBindings(self.KeyBindings)
+	}
+	if nil != self.KeyValue {
+		return CimKeyBindings([]CimKeyBinding{CimKeyBinding{Name: "-", KeyValue: self.KeyValue}})
+	}
+
+	if nil != self.ValueReference {
+		return CimKeyBindings([]CimKeyBinding{CimKeyBinding{Name: "-", ValueReference: self.ValueReference}})
+	}
+	return nil
+}
+
+func (self *CimInstanceName) IsTyped() bool {
+	if 0 != len(self.KeyBindings) {
+		for _, kb := range self.KeyBindings {
+			if !kb.IsTyped() {
+				return false
+			}
+		}
+	} else if nil != self.KeyValue {
+		return self.KeyValue.IsTyped()
+	}
+	return false
+}
+
+func (self *CimInstanceName) IsNil() bool {
+	return "" == self.ClassName
+}
+
+func (self *CimInstanceName) ToString(buf *bytes.Buffer) {
+	buf.WriteString(self.ClassName)
+	if 0 != len(self.KeyBindings) {
+		buf.WriteString(".")
+		for _, kb := range self.KeyBindings {
+			kb.ToString(buf)
+			buf.WriteString(",")
+		}
+		buf.Truncate(buf.Len() - 1)
+		return
+	}
+	if nil != self.KeyValue {
+		buf.WriteString(".")
+		self.KeyValue.ToString(buf)
+		return
+	}
+
+	if nil != self.ValueReference {
+		buf.WriteString(".")
+		self.KeyValue.ToString(buf)
+		return
+	}
+}
+
+func (self *CimInstanceName) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
+}
+
 //     <xs:element name="OBJECTPATH">
 //         <xs:annotation>
 //             <xs:documentation>Defines the full path to a single CIM object (class or instance).
@@ -614,6 +835,28 @@ type CimObjectPath struct {
 	XMLName      xml.Name         `xml:"OBJECTPATH"`
 	InstancePath *CimInstancePath `xml:"INSTANCEPATH,omitempty"`
 	ClassPath    *CimClassPath    `xml:"CLASSPATH,omitempty"`
+}
+
+func (self *CimObjectPath) IsNil() bool {
+	return nil == self.InstancePath && nil == self.ClassPath
+}
+
+func (self *CimObjectPath) ToString(buf *bytes.Buffer) {
+	if nil != self.InstancePath {
+		self.InstancePath.ToString(buf)
+		return
+	}
+
+	if nil != self.ClassPath {
+		self.ClassPath.ToString(buf)
+		return
+	}
+}
+
+func (self *CimObjectPath) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
 }
 
 //     <xs:element name="KEYBINDING">
@@ -634,6 +877,75 @@ type CimKeyBinding struct {
 	Name           string             `xml:"NAME,attr"`
 	KeyValue       *CimKeyValue       `xml:"KEYVALUE,omitempty"`
 	ValueReference *CimValueReference `xml:"VALUE.REFERENCE,omitempty"`
+}
+
+func (self *CimKeyBinding) GetName() string {
+	return self.Name
+}
+
+func (self *CimKeyBinding) GetType() CIMType {
+	if nil != self.KeyValue {
+		if "" != self.KeyValue.ValueType {
+			return CreateCIMType(self.KeyValue.ValueType)
+		}
+		return CreateCIMType(self.KeyValue.Type)
+	}
+	if nil != self.ValueReference {
+		return CreateCIMType("reference")
+	}
+	return INVALID_TYPE
+}
+
+func (self *CimKeyBinding) IsTyped() bool {
+	if nil == self.KeyValue {
+		return false
+	}
+	return self.KeyValue.IsTyped()
+}
+
+func (self *CimKeyBinding) GetValue() interface{} {
+	if nil != self.KeyValue {
+		return self.KeyValue.Value
+	}
+	if nil != self.ValueReference {
+		return self.ValueReference
+	}
+	return nil
+}
+
+func (self *CimKeyBinding) IsNil() bool {
+	return "" == self.Name
+}
+
+func (self *CimKeyBinding) ToString(buf *bytes.Buffer) {
+	buf.WriteString(self.Name)
+	buf.WriteString("=")
+
+	if nil != self.KeyValue {
+		self.KeyValue.ToString(buf)
+		return
+	}
+
+	if nil != self.ValueReference {
+		buf.WriteString(url.QueryEscape(self.ValueReference.String()))
+		return
+	}
+}
+
+func (self *CimKeyBinding) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
+}
+
+type CimKeyBindings []CimKeyBinding
+
+func (self CimKeyBindings) Len() int {
+	return len(self)
+}
+
+func (self CimKeyBindings) Get(idx int) CIMKeyBinding {
+	return &self[idx]
 }
 
 //     <xs:element name="KEYVALUE">
@@ -659,6 +971,58 @@ type CimKeyValue struct {
 	ValueType string   `xml:"VALUETYPE,attr,omitempty"`
 	Type      string   `xml:"TYPE,attr,omitempty"`
 	Value     string   `xml:",chardata"`
+}
+
+func (self *CimKeyValue) IsNil() bool {
+	return "" == self.Value
+}
+
+func (self *CimKeyValue) IsTyped() bool {
+	return "" != self.GetType()
+}
+
+func (self *CimKeyValue) GetType() string {
+	if "" != self.Type {
+		return self.Type
+	}
+	return self.ValueType
+}
+
+func (self *CimKeyValue) ToString(buf *bytes.Buffer) {
+	t := self.Type
+	if "" == t {
+		t = self.ValueType
+	}
+
+	if "" == t {
+		if "true" == strings.ToLower(self.Value) ||
+			"false" == strings.ToLower(self.Value) {
+			buf.WriteString(self.Value)
+		} else if _, ok := strconv.ParseFloat(self.Value, 64); nil == ok {
+			buf.WriteString(self.Value)
+			//} else if _, e := time.Parse(layout, self.Value); nil == e {
+			//	buf.WriteString(self.Value)
+		} else {
+			buf.WriteString("\"")
+			buf.WriteString(self.Value)
+			buf.WriteString("\"")
+		}
+	} else if "string" == t {
+		buf.WriteString("\"")
+		buf.WriteString(self.Value)
+		buf.WriteString("\"")
+	} else {
+		buf.WriteString("(")
+		buf.WriteString(t)
+		buf.WriteString(")")
+		buf.WriteString(self.Value)
+	}
+}
+
+func (self *CimKeyValue) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
 }
 
 //     <!-- Section: Object Definition Elements -->
@@ -694,6 +1058,21 @@ type CimAnyProperty struct {
 	Property          *CimProperty          `xml:"PROPERTY,omitempty"`
 	PropertyArray     *CimPropertyArray     `xml:"PROPERTY.ARRAY,omitempty"`
 	PropertyReference *CimPropertyReference `xml:"PROPERTY.REFERENCE,omitempty"`
+}
+
+func (self *CimAnyProperty) Get() CIMProperty {
+	if nil != self.Property {
+		return self.Property
+	}
+
+	if nil != self.PropertyArray {
+		return self.PropertyArray
+	}
+
+	if nil != self.PropertyReference {
+		return self.PropertyReference
+	}
+	return nil
 }
 
 func (self *CimAnyProperty) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
@@ -753,6 +1132,83 @@ type CimInstance struct {
 	Lang       string           `xml:"xml lang,attr,omitempty"`
 	Qualifiers []CimQualifier   `xml:"QUALIFIER,omitempty"`
 	Properties []CimAnyProperty `xml:",any,omitempty"`
+}
+
+func (self *CimInstance) GetClassName() string {
+	return self.ClassName
+}
+
+func (self *CimInstance) GetProperties() []CIMProperty {
+	if 0 == len(self.Properties) {
+		return nil
+	}
+	properties := make([]CIMProperty, len(self.Properties))
+	for idx, pr := range self.Properties {
+		properties[idx] = pr.Get()
+	}
+	return properties
+}
+
+func (self *CimInstance) GetPropertyByIndex(index int) CIMProperty {
+	if 0 <= index && index < len(self.Properties) {
+		return self.Properties[index].Get()
+	}
+	return nil
+}
+
+func (self *CimInstance) GetPropertyByName(name string) CIMProperty {
+	if 0 == len(self.Properties) {
+		return nil
+	}
+	for _, pr := range self.Properties {
+		if nil != pr.Property {
+			if name == pr.Property.Name {
+				return pr.Property
+			}
+		} else if nil != pr.PropertyArray {
+			if name == pr.PropertyArray.Name {
+				return pr.PropertyArray
+			}
+		} else if nil != pr.PropertyReference {
+			if name == pr.PropertyReference.Name {
+				return pr.PropertyReference
+			}
+		}
+	}
+	return nil
+}
+
+func (self *CimInstance) GetPropertyByNameAndOrigin(name, originClass string) CIMProperty {
+	if 0 == len(self.Properties) {
+		return nil
+	}
+	if "" == originClass {
+		return self.GetPropertyByName(name)
+	}
+
+	for _, pr := range self.Properties {
+		if nil != pr.PropertyReference {
+			if nil != pr.Property {
+				if name == pr.Property.Name ||
+					originClass == pr.Property.ClassOrigin {
+					return pr.Property
+				}
+			} else if nil != pr.PropertyArray {
+				if name == pr.PropertyArray.Name ||
+					originClass == pr.PropertyArray.ClassOrigin {
+					return pr.PropertyArray
+				}
+			} else if name == pr.PropertyReference.Name ||
+				originClass == pr.PropertyReference.ClassOrigin {
+				return pr.PropertyReference
+			}
+		}
+	}
+	return nil
+}
+
+func (self *CimInstance) GetPropertyCount() int {
+	return len(self.Properties)
 }
 
 //     <xs:element name="QUALIFIER">
@@ -834,6 +1290,48 @@ type CimProperty struct {
 	Value          *CimValue      `xml:"VALUE,omitempty"`
 }
 
+func (self *CimProperty) GetName() string {
+	return self.Name
+}
+
+func (self *CimProperty) GetType() CIMType {
+	return CreateCIMType(self.Type)
+}
+
+func (self *CimProperty) GetValue() interface{} {
+	if nil == self.Value {
+		return nil
+	}
+	return self.Value.Value
+}
+
+func (self *CimProperty) GetOriginClass() string {
+	return self.ClassOrigin
+}
+
+func (self *CimProperty) IsKey() bool {
+	if 0 != len(self.Qualifiers) {
+		for _, qualifier := range self.Qualifiers {
+			if "key" == qualifier.Name {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (self *CimProperty) IsPropagated() bool {
+	return self.Propagated
+}
+
+func (self *CimProperty) GetEmbeddedObject() string {
+	return self.EmbeddedObject
+}
+
+func (self *CimProperty) GetClassOrigin() string {
+	return self.ClassOrigin
+}
+
 //     <xs:element name="PROPERTY.ARRAY">
 //         <xs:annotation>
 //             <xs:documentation>Defines a non-reference array property, that is used as a property value in a CIM instance
@@ -867,6 +1365,54 @@ type CimPropertyArray struct {
 	ValueArray     CimValueArray  `xml:"VALUE.ARRAY,omitempty"`
 }
 
+func (self *CimPropertyArray) GetName() string {
+	return self.Name
+}
+
+func (self *CimPropertyArray) GetType() CIMType {
+	return CreateCIMArrayType(self.Type, self.ArraySize)
+}
+
+func (self *CimPropertyArray) GetValue() interface{} {
+	if 0 == len(self.ValueArray) {
+		return nil
+	}
+	results := make([]interface{}, len(self.ValueArray))
+	for idx, v := range self.ValueArray {
+		if nil != v.Value {
+			results[idx] = v.Value.Value
+		}
+	}
+	return results
+}
+
+func (self *CimPropertyArray) GetOriginClass() string {
+	return self.ClassOrigin
+}
+
+func (self *CimPropertyArray) IsKey() bool {
+	if 0 != len(self.Qualifiers) {
+		for _, qualifier := range self.Qualifiers {
+			if "key" == qualifier.Name {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (self *CimPropertyArray) IsPropagated() bool {
+	return self.Propagated
+}
+
+func (self *CimPropertyArray) GetEmbeddedObject() string {
+	return self.EmbeddedObject
+}
+
+func (self *CimPropertyArray) GetClassOrigin() string {
+	return self.ClassOrigin
+}
+
 //     <xs:element name="PROPERTY.REFERENCE">
 //         <xs:annotation>
 //             <xs:documentation>Defines a scalar reference property, that is used as a property value in a CIM instance
@@ -892,6 +1438,48 @@ type CimPropertyReference struct {
 	Propagated     bool               `xml:"PROPAGATED,attr,omitempty"`
 	Qualifiers     []CimQualifier     `xml:"QUALIFIER,omitempty"`
 	ValueReference *CimValueReference `xml:"VALUE.REFERENCE,omitempty"`
+}
+
+func (self *CimPropertyReference) GetName() string {
+	return self.Name
+}
+
+func (self *CimPropertyReference) GetType() CIMType {
+	return CreateCIMReferenceType(self.ReferenceClass)
+}
+
+func (self *CimPropertyReference) GetValue() interface{} {
+	if nil == self.ValueReference {
+		return nil
+	}
+	return self.ValueReference.String()
+}
+
+func (self *CimPropertyReference) GetOriginClass() string {
+	return self.ClassOrigin
+}
+
+func (self *CimPropertyReference) IsKey() bool {
+	if 0 != len(self.Qualifiers) {
+		for _, qualifier := range self.Qualifiers {
+			if "key" == qualifier.Name {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (self *CimPropertyReference) IsPropagated() bool {
+	return self.Propagated
+}
+
+func (self *CimPropertyReference) GetEmbeddedObject() string {
+	return ""
+}
+
+func (self *CimPropertyReference) GetClassOrigin() string {
+	return self.ClassOrigin
 }
 
 //     <xs:element name="METHOD">
@@ -1345,7 +1933,7 @@ type CimIMethodResponse struct {
 //     </xs:element>
 type CimError struct {
 	XMLName     xml.Name      `xml:"ERROR"`
-	Code        int           `xml:"NAME,attr"`
+	Code        int           `xml:"CODE,attr"`
 	Description string        `xml:"DESCRIPTION,attr,omitempty"`
 	Instance    []CimInstance `xml:"INSTANCE,omitempty"`
 }
@@ -1398,22 +1986,22 @@ type CimReturnValue struct {
 //         </xs:complexType>
 //     </xs:element>
 type CimIReturnValue struct {
-	XMLName                  xml.Name                      `xml:"IRETURNVALUE"`
-	ClassName                []CimClassName                `xml:"CLASSNAME,omitempty"`
-	InstanceName             []CimInstanceName             `xml:"INSTANCENAME,omitempty"`
-	Value                    []CimValue                    `xml:"VALUE,omitempty"`
-	ValueObjectWithPath      []CimValueObjectWithPath      `xml:"VALUE.OBJECTWITHPATH,omitempty"`
-	ValueObjectWithLocalPath []CimValueObjectWithLocalPath `xml:"VALUE.OBJECTWITHLOCALPATH,omitempty"`
-	ValueObject              []CimValueObject              `xml:"VALUE.OBJECT,omitempty"`
-	ObjectPath               []CimObjectPath               `xml:"OBJECTPATH,omitempty"`
-	QualifierDeclaration     []CimQualifierDeclaration     `xml:"QUALIFIER.DECLARATION,omitempty"`
-	ValueArray               CimValueArray                 `xml:"VALUE.ARRAY,omitempty"`
-	ValueReference           *CimValueReference            `xml:"VALUE.REFERENCE,omitempty"`
-	Class                    []CimClass                    `xml:"CLASS,omitempty"`
-	Instance                 []CimInstance                 `xml:"INSTANCE,omitempty"`
-	InstancePath             []CimInstancePath             `xml:"INSTANCEPATH,omitempty"`
-	ValueNamedInstance       []CimValueNamedInstance       `xml:"VALUE.NAMEDINSTANCE,omitempty"`
-	ValueInstanceWithPath    []CimValueInstanceWithPath    `xml:"VALUE.INSTANCEWITHPATH,omitempty"`
+	XMLName                   xml.Name                      `xml:"IRETURNVALUE"`
+	ClassNames                []CimClassName                `xml:"CLASSNAME,omitempty"`
+	InstanceNames             []*CimInstanceName            `xml:"INSTANCENAME,omitempty"`
+	Values                    []CimValue                    `xml:"VALUE,omitempty"`
+	ValueObjectWithPaths      []CimValueObjectWithPath      `xml:"VALUE.OBJECTWITHPATH,omitempty"`
+	ValueObjectWithLocalPaths []CimValueObjectWithLocalPath `xml:"VALUE.OBJECTWITHLOCALPATH,omitempty"`
+	ValueObjects              []CimValueObject              `xml:"VALUE.OBJECT,omitempty"`
+	ObjectPaths               []CimObjectPath               `xml:"OBJECTPATH,omitempty"`
+	QualifierDeclarations     []CimQualifierDeclaration     `xml:"QUALIFIER.DECLARATION,omitempty"`
+	ValueArray                CimValueArray                 `xml:"VALUE.ARRAY,omitempty"`
+	ValueReference            *CimValueReference            `xml:"VALUE.REFERENCE,omitempty"`
+	Classes                   []CimClass                    `xml:"CLASS,omitempty"`
+	Instances                 []CimInstance                 `xml:"INSTANCE,omitempty"`
+	InstancePaths             []CimInstancePath             `xml:"INSTANCEPATH,omitempty"`
+	ValueNamedInstances       []CimValueNamedInstance       `xml:"VALUE.NAMEDINSTANCE,omitempty"`
+	ValueInstanceWithPaths    []CimValueInstanceWithPath    `xml:"VALUE.INSTANCEWITHPATH,omitempty"`
 }
 
 //     <xs:element name="MULTIEXPREQ">

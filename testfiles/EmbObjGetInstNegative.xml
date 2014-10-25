@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CIM CIMVERSION="2.0" DTDVERSION="2.0">
+  <MESSAGE ID="14" PROTOCOLVERSION="1.0">
+    <SIMPLERSP>
+      <IMETHODRESPONSE NAME="GetInstance">
+        <IRETURNVALUE>
+          <VALUE.NAMEDINSTANCE>
+            <INSTANCENAME CLASSNAME="TestClass">
+              <KEYBINDING NAME="ID">
+                <KEYVALUE VALUETYPE="string">00</KEYVALUE>
+              </KEYBINDING>
+            </INSTANCENAME>
+            <INSTANCE CLASSNAME="TestClass">
+              <PROPERTY NAME="InstAttrWithClassValue" TYPE="string" EmbeddedObject="instance" EMBEDDEDOBJECT="instance">
+                <VALUE>&lt;CLASS &#32;NAME=&quot;MyTestClass&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;KeyProp&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;VALUE&gt;&lt;/VALUE&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/CLASS&gt;&#10;</VALUE>
+              </PROPERTY>
+            </INSTANCE>
+          </VALUE.NAMEDINSTANCE>
+        </IRETURNVALUE>
+      </IMETHODRESPONSE>
+    </SIMPLERSP>
+  </MESSAGE>
+</CIM>

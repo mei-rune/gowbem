@@ -14,7 +14,7 @@ func makeLocalNamespace(ss []string) *CimLocalNamespacePath {
 	for _, s := range ss {
 		names = append(names, CimNamespace{Name: s})
 	}
-	return &CimLocalNamespacePath{Namespace: names}
+	return &CimLocalNamespacePath{Namespaces: names}
 }
 
 func makeLocalClass(ss []string, cls string) *CimLocalClassPath {

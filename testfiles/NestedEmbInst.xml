@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<CIM CIMVERSION="2.0" DTDVERSION="2.0">
+<MESSAGE ID="1" PROTOCOLVERSION="1.0">
+<SIMPLERSP>
+<IMETHODRESPONSE NAME="EnumerateInstances">
+<IRETURNVALUE>
+<INSTANCE CLASSNAME="LMI_StorageInstModification">
+<PROPERTY NAME="SourceInstanceHost" TYPE="string">
+<VALUE>rawhide</VALUE>
+</PROPERTY>
+<PROPERTY NAME="SourceInstanceModelPath" TYPE="string">
+<VALUE>//rawhide/root/cimv2:LMI_StorageJob.InstanceID=&quot;LMI:LMI_StorageJob:1&quot;</VALUE>
+</PROPERTY>
+<PROPERTY NAME="SourceInstance" EmbeddedObject="object" TYPE="string">
+<VALUE>&lt;INSTANCE CLASSNAME=&quot;LMI_StorageJob&quot;&gt;
+&lt;PROPERTY NAME=&quot;MethodName&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;JobOutParameters&quot; EmbeddedObject=&quot;object&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;JobInParameters&quot; EmbeddedObject=&quot;object&quot; TYPE=&quot;string&quot;&gt;
+&lt;VALUE&gt;&amp;lt;INSTANCE CLASSNAME=&amp;quot;CIM_ManagedElement&amp;quot;&amp;gt;
+&amp;lt;PROPERTY NAME=&amp;quot;Generation&amp;quot; TYPE=&amp;quot;uint64&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY&amp;gt;
+&amp;lt;PROPERTY NAME=&amp;quot;ElementName&amp;quot; TYPE=&amp;quot;string&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY&amp;gt;
+&amp;lt;PROPERTY NAME=&amp;quot;Description&amp;quot; TYPE=&amp;quot;string&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY&amp;gt;
+&amp;lt;PROPERTY NAME=&amp;quot;Caption&amp;quot; TYPE=&amp;quot;string&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY&amp;gt;
+&amp;lt;PROPERTY NAME=&amp;quot;InstanceID&amp;quot; TYPE=&amp;quot;string&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY&amp;gt;
+&amp;lt;PROPERTY.REFERENCE NAME=&amp;quot;Partition&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY.REFERENCE&amp;gt;
+&amp;lt;PROPERTY.REFERENCE NAME=&amp;quot;Goal&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY.REFERENCE&amp;gt;
+&amp;lt;PROPERTY.REFERENCE NAME=&amp;quot;Extent&amp;quot;&amp;gt;
+&amp;lt;VALUE.REFERENCE&amp;gt;
+&amp;lt;LOCALINSTANCEPATH&amp;gt;
+&amp;lt;LOCALNAMESPACEPATH&amp;gt;
+&amp;lt;NAMESPACE NAME=&amp;quot;root&amp;quot;/&amp;gt;
+&amp;lt;NAMESPACE NAME=&amp;quot;cimv2&amp;quot;/&amp;gt;
+&amp;lt;/LOCALNAMESPACEPATH&amp;gt;
+&amp;lt;INSTANCENAME CLASSNAME=&amp;quot;CIM_StorageExtent&amp;quot;&amp;gt;
+&amp;lt;KEYBINDING NAME=&amp;quot;CreationClassName&amp;quot;&amp;gt;
+&amp;lt;KEYVALUE VALUETYPE=&amp;quot;string&amp;quot;&amp;gt;LMI_StorageExtent&amp;lt;/KEYVALUE&amp;gt;
+&amp;lt;/KEYBINDING&amp;gt;
+&amp;lt;KEYBINDING NAME=&amp;quot;SystemName&amp;quot;&amp;gt;
+&amp;lt;KEYVALUE VALUETYPE=&amp;quot;string&amp;quot;&amp;gt;rawhide&amp;lt;/KEYVALUE&amp;gt;
+&amp;lt;/KEYBINDING&amp;gt;
+&amp;lt;KEYBINDING NAME=&amp;quot;DeviceID&amp;quot;&amp;gt;
+&amp;lt;KEYVALUE VALUETYPE=&amp;quot;string&amp;quot;&amp;gt;/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-1&amp;lt;/KEYVALUE&amp;gt;
+&amp;lt;/KEYBINDING&amp;gt;
+&amp;lt;KEYBINDING NAME=&amp;quot;SystemCreationClassName&amp;quot;&amp;gt;
+&amp;lt;KEYVALUE VALUETYPE=&amp;quot;string&amp;quot;&amp;gt;Linux_ComputerSystem&amp;lt;/KEYVALUE&amp;gt;
+&amp;lt;/KEYBINDING&amp;gt;
+&amp;lt;/INSTANCENAME&amp;gt;
+&amp;lt;/LOCALINSTANCEPATH&amp;gt;
+&amp;lt;/VALUE.REFERENCE&amp;gt;
+&amp;lt;/PROPERTY.REFERENCE&amp;gt;
+&amp;lt;PROPERTY NAME=&amp;quot;Size&amp;quot; TYPE=&amp;quot;uint64&amp;quot;&amp;gt;
+&amp;lt;VALUE&amp;gt;10000000&amp;lt;/VALUE&amp;gt;
+&amp;lt;/PROPERTY&amp;gt;
+&amp;lt;/INSTANCE&amp;gt;
+&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;InstanceID&quot; TYPE=&quot;string&quot;&gt;
+&lt;VALUE&gt;LMI:LMI_StorageJob:1&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Generation&quot; TYPE=&quot;uint64&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;ElementName&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Description&quot; TYPE=&quot;string&quot;&gt;
+&lt;VALUE&gt;CREATE PARTITION ON /dev/sdb&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Caption&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;InstallDate&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY.ARRAY NAME=&quot;StatusDescriptions&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY.ARRAY&gt;
+&lt;PROPERTY NAME=&quot;Status&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;HealthState&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;CommunicationStatus&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;DetailedStatus&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;OperatingStatus&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;PrimaryStatus&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;JobStatus&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;ScheduledStartTime&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;JobRunTimes&quot; TYPE=&quot;uint32&quot;&gt;
+&lt;VALUE&gt;1&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;RunMonth&quot; TYPE=&quot;uint8&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;RunDay&quot; TYPE=&quot;sint8&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;RunDayOfWeek&quot; TYPE=&quot;sint8&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;RunStartInterval&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;UntilTime&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Notify&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Owner&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Priority&quot; TYPE=&quot;uint32&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;ErrorCode&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;ErrorDescription&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;RecoveryAction&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;OtherRecoveryAction&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;DeleteOnCompletion&quot; TYPE=&quot;boolean&quot;&gt;
+&lt;VALUE&gt;TRUE&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;ElapsedTime&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;JobState&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;VALUE&gt;4&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;LocalOrUtcTime&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;VALUE&gt;2&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Name&quot; TYPE=&quot;string&quot;&gt;
+&lt;VALUE&gt;CREATE PARTITION ON /dev/sdb&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY.ARRAY NAME=&quot;OperationalStatus&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;VALUE.ARRAY&gt;
+&lt;VALUE&gt;2&lt;/VALUE&gt;
+&lt;/VALUE.ARRAY&gt;
+&lt;/PROPERTY.ARRAY&gt;
+&lt;PROPERTY NAME=&quot;PercentComplete&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;VALUE&gt;50&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;StartTime&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;VALUE&gt;20130429103108.468050+000&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;TimeBeforeRemoval&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;VALUE&gt;00000000000100.000000:000&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;TimeOfLastStateChange&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;VALUE&gt;20130429103108.468089+000&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;TimeSubmitted&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;VALUE&gt;20130429103108.458642+000&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;/INSTANCE&gt;
+</VALUE>
+</PROPERTY>
+<PROPERTY NAME="IndicationIdentifier" TYPE="string">
+</PROPERTY>
+<PROPERTY.ARRAY NAME="CorrelatedIndications" TYPE="string">
+</PROPERTY.ARRAY>
+<PROPERTY NAME="IndicationTime" TYPE="datetime">
+</PROPERTY>
+<PROPERTY NAME="PerceivedSeverity" TYPE="uint16">
+<VALUE>2</VALUE>
+</PROPERTY>
+<PROPERTY NAME="OtherSeverity" TYPE="string">
+</PROPERTY>
+<PROPERTY NAME="IndicationFilterName" TYPE="string">
+<VALUE>LMI:LMI_StorageJob:Changed</VALUE>
+</PROPERTY>
+<PROPERTY NAME="SequenceContext" TYPE="string">
+<VALUE>sfcb:NO-UUID-FILE-rawhide#20130429103059#20130429103057</VALUE>
+</PROPERTY>
+<PROPERTY NAME="SequenceNumber" TYPE="sint64">
+<VALUE>0</VALUE>
+</PROPERTY>
+<PROPERTY NAME="PreviousInstance" EmbeddedObject="object" TYPE="string">
+<VALUE>&lt;INSTANCE CLASSNAME=&quot;LMI_StorageJob&quot;&gt;
+&lt;PROPERTY NAME=&quot;MethodName&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;JobOutParameters&quot; EmbeddedObject=&quot;object&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;JobInParameters&quot; EmbeddedObject=&quot;object&quot; TYPE=&quot;string&quot;&gt;
+&lt;VALUE&gt;&amp;lt;INSTANCE CLASSNAME=&amp;quot;CIM_ManagedElement&amp;quot;&amp;gt;
+&amp;lt;PROPERTY NAME=&amp;quot;Generation&amp;quot; TYPE=&amp;quot;uint64&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY&amp;gt;
+&amp;lt;PROPERTY NAME=&amp;quot;ElementName&amp;quot; TYPE=&amp;quot;string&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY&amp;gt;
+&amp;lt;PROPERTY NAME=&amp;quot;Description&amp;quot; TYPE=&amp;quot;string&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY&amp;gt;
+&amp;lt;PROPERTY NAME=&amp;quot;Caption&amp;quot; TYPE=&amp;quot;string&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY&amp;gt;
+&amp;lt;PROPERTY NAME=&amp;quot;InstanceID&amp;quot; TYPE=&amp;quot;string&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY&amp;gt;
+&amp;lt;PROPERTY.REFERENCE NAME=&amp;quot;Partition&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY.REFERENCE&amp;gt;
+&amp;lt;PROPERTY.REFERENCE NAME=&amp;quot;Goal&amp;quot;&amp;gt;
+&amp;lt;/PROPERTY.REFERENCE&amp;gt;
+&amp;lt;PROPERTY.REFERENCE NAME=&amp;quot;Extent&amp;quot;&amp;gt;
+&amp;lt;VALUE.REFERENCE&amp;gt;
+&amp;lt;LOCALINSTANCEPATH&amp;gt;
+&amp;lt;LOCALNAMESPACEPATH&amp;gt;
+&amp;lt;NAMESPACE NAME=&amp;quot;root&amp;quot;/&amp;gt;
+&amp;lt;NAMESPACE NAME=&amp;quot;cimv2&amp;quot;/&amp;gt;
+&amp;lt;/LOCALNAMESPACEPATH&amp;gt;
+&amp;lt;INSTANCENAME CLASSNAME=&amp;quot;CIM_StorageExtent&amp;quot;&amp;gt;
+&amp;lt;KEYBINDING NAME=&amp;quot;CreationClassName&amp;quot;&amp;gt;
+&amp;lt;KEYVALUE VALUETYPE=&amp;quot;string&amp;quot;&amp;gt;LMI_StorageExtent&amp;lt;/KEYVALUE&amp;gt;
+&amp;lt;/KEYBINDING&amp;gt;
+&amp;lt;KEYBINDING NAME=&amp;quot;SystemName&amp;quot;&amp;gt;
+&amp;lt;KEYVALUE VALUETYPE=&amp;quot;string&amp;quot;&amp;gt;rawhide&amp;lt;/KEYVALUE&amp;gt;
+&amp;lt;/KEYBINDING&amp;gt;
+&amp;lt;KEYBINDING NAME=&amp;quot;DeviceID&amp;quot;&amp;gt;
+&amp;lt;KEYVALUE VALUETYPE=&amp;quot;string&amp;quot;&amp;gt;/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-1&amp;lt;/KEYVALUE&amp;gt;
+&amp;lt;/KEYBINDING&amp;gt;
+&amp;lt;KEYBINDING NAME=&amp;quot;SystemCreationClassName&amp;quot;&amp;gt;
+&amp;lt;KEYVALUE VALUETYPE=&amp;quot;string&amp;quot;&amp;gt;Linux_ComputerSystem&amp;lt;/KEYVALUE&amp;gt;
+&amp;lt;/KEYBINDING&amp;gt;
+&amp;lt;/INSTANCENAME&amp;gt;
+&amp;lt;/LOCALINSTANCEPATH&amp;gt;
+&amp;lt;/VALUE.REFERENCE&amp;gt;
+&amp;lt;/PROPERTY.REFERENCE&amp;gt;
+&amp;lt;PROPERTY NAME=&amp;quot;Size&amp;quot; TYPE=&amp;quot;uint64&amp;quot;&amp;gt;
+&amp;lt;VALUE&amp;gt;10000000&amp;lt;/VALUE&amp;gt;
+&amp;lt;/PROPERTY&amp;gt;
+&amp;lt;/INSTANCE&amp;gt;
+&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;InstanceID&quot; TYPE=&quot;string&quot;&gt;
+&lt;VALUE&gt;LMI:LMI_StorageJob:1&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Generation&quot; TYPE=&quot;uint64&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;ElementName&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Description&quot; TYPE=&quot;string&quot;&gt;
+&lt;VALUE&gt;CREATE PARTITION ON /dev/sdb&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Caption&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;InstallDate&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY.ARRAY NAME=&quot;StatusDescriptions&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY.ARRAY&gt;
+&lt;PROPERTY NAME=&quot;Status&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;HealthState&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;CommunicationStatus&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;DetailedStatus&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;OperatingStatus&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;PrimaryStatus&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;JobStatus&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;ScheduledStartTime&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;JobRunTimes&quot; TYPE=&quot;uint32&quot;&gt;
+&lt;VALUE&gt;1&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;RunMonth&quot; TYPE=&quot;uint8&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;RunDay&quot; TYPE=&quot;sint8&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;RunDayOfWeek&quot; TYPE=&quot;sint8&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;RunStartInterval&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;UntilTime&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Notify&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Owner&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Priority&quot; TYPE=&quot;uint32&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;ErrorCode&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;ErrorDescription&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;RecoveryAction&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;OtherRecoveryAction&quot; TYPE=&quot;string&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;DeleteOnCompletion&quot; TYPE=&quot;boolean&quot;&gt;
+&lt;VALUE&gt;TRUE&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;ElapsedTime&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;JobState&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;VALUE&gt;2&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;LocalOrUtcTime&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;VALUE&gt;2&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;Name&quot; TYPE=&quot;string&quot;&gt;
+&lt;VALUE&gt;CREATE PARTITION ON /dev/sdb&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY.ARRAY NAME=&quot;OperationalStatus&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;VALUE.ARRAY&gt;
+&lt;VALUE&gt;15&lt;/VALUE&gt;
+&lt;/VALUE.ARRAY&gt;
+&lt;/PROPERTY.ARRAY&gt;
+&lt;PROPERTY NAME=&quot;PercentComplete&quot; TYPE=&quot;uint16&quot;&gt;
+&lt;VALUE&gt;0&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;StartTime&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;TimeBeforeRemoval&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;VALUE&gt;00000000000100.000000:000&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;TimeOfLastStateChange&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;VALUE&gt;20130429103108.458642+000&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;PROPERTY NAME=&quot;TimeSubmitted&quot; TYPE=&quot;datetime&quot;&gt;
+&lt;VALUE&gt;20130429103108.458642+000&lt;/VALUE&gt;
+&lt;/PROPERTY&gt;
+&lt;/INSTANCE&gt;
+</VALUE>
+</PROPERTY>
+<PROPERTY.ARRAY NAME="ChangedPropertyNames" TYPE="string">
+</PROPERTY.ARRAY>
+</INSTANCE>
+</IRETURNVALUE>
+</IMETHODRESPONSE>
+</SIMPLERSP>
+</MESSAGE>
+</CIM>

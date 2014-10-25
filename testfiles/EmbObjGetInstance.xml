@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CIM CIMVERSION="2.0" DTDVERSION="2.0">
+  <MESSAGE ID="14" PROTOCOLVERSION="1.0">
+    <SIMPLERSP>
+      <IMETHODRESPONSE NAME="GetInstance">
+        <IRETURNVALUE>
+          <VALUE.NAMEDINSTANCE>
+            <INSTANCENAME CLASSNAME="TestClass">
+              <KEYBINDING NAME="ID">
+                <KEYVALUE VALUETYPE="string">00</KEYVALUE>
+              </KEYBINDING>
+            </INSTANCENAME>
+            <INSTANCE CLASSNAME="TestClass">
+              <PROPERTY NAME="ClassValueWithObjAttr" TYPE="string" EmbeddedObject="object">
+                <VALUE>&lt;CLASS &#32;NAME=&quot;MyTestClass&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;KeyProp&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/CLASS&gt;&#10;</VALUE>
+              </PROPERTY>
+              <PROPERTY.ARRAY NAME="ClassValueArrayWithObjAttr" TYPE="string" EmbeddedObject="object">
+                <VALUE.ARRAY>
+                  <VALUE>&lt;CLASS &#32;NAME=&quot;MyTestClass&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;KeyProp&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/CLASS&gt;&#10;</VALUE>
+                  <VALUE>&lt;CLASS &#32;NAME=&quot;MyTestClass&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;KeyProp&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/CLASS&gt;&#10;</VALUE>
+                  <VALUE></VALUE>
+                </VALUE.ARRAY>
+              </PROPERTY.ARRAY>
+              <PROPERTY NAME="InstValueWithInstAttr" TYPE="string" EMBEDDEDOBJECT="instance">
+                <VALUE>&lt;INSTANCE &#32;CLASSNAME=&quot;TestCMPI_Instance&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;ElementName&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/INSTANCE&gt;&#10;</VALUE>
+              </PROPERTY>
+              <PROPERTY.ARRAY NAME="InstValueArrayWithInstAttr" TYPE="string" EMBEDDEDOBJECT="instance">
+                <VALUE.ARRAY>
+                  <VALUE>&lt;INSTANCE &#32;CLASSNAME=&quot;TestCMPI_Instance&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;ElementName&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/INSTANCE&gt;&#10;</VALUE>
+                  <VALUE>&lt;INSTANCE &#32;CLASSNAME=&quot;TestCMPI_Instance&quot; &gt;&#10;&lt;PROPERTY NAME=&quot;ElementName&quot; &#32;TYPE=&quot;string&quot;&gt;&#10;&lt;/PROPERTY&gt;&#10;&lt;/INSTANCE&gt;&#10;</VALUE>
+                  <VALUE></VALUE>
+                </VALUE.ARRAY>
+              </PROPERTY.ARRAY>
+              <PROPERTY NAME="UnValuedWithObjAttr" TYPE="string" EmbeddedObject="object" />
+              <PROPERTY NAME="UnValuedWithInstAttr" TYPE="string" EMBEDDEDOBJECT="instance" />
+              <PROPERTY NAME="NormalStringProperty" TYPE="string">
+                <VALUE>Good morning!</VALUE>
+              </PROPERTY>
+            </INSTANCE>
+          </VALUE.NAMEDINSTANCE>
+        </IRETURNVALUE>
+      </IMETHODRESPONSE>
+    </SIMPLERSP>
+  </MESSAGE>
+</CIM>

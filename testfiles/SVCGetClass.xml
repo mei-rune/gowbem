@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CIM CIMVERSION="2.0" DTDVERSION="2.0">
+  <MESSAGE ID="14" PROTOCOLVERSION="1.0">
+    <SIMPLERSP>
+      <IMETHODRESPONSE NAME="GetClass">
+        <IRETURNVALUE>
+            <CLASS NAME="TestClass">
+              <QUALIFIER NAME="StringQuali">
+                <VALUE TYPE="string">Hello world!</VALUE>
+              </QUALIFIER>
+              <QUALIFIER NAME="IntAQuali">
+                <VALUE.ARRAY TYPE="sint32">
+                  <VALUE>12</VALUE><VALUE>24</VALUE>
+                </VALUE.ARRAY>
+              </QUALIFIER>
+              <PROPERTY NAME="IntProp">
+                <VALUE TYPE="sint32">38</VALUE>
+              </PROPERTY>
+              <PROPERTY.ARRAY NAME="BoolPropArray">
+                <VALUE.ARRAY TYPE="boolean">
+                  <VALUE>true</VALUE>
+                  <VALUE>false</VALUE>
+                </VALUE.ARRAY>
+              </PROPERTY.ARRAY>
+            </CLASS>
+        </IRETURNVALUE>
+      </IMETHODRESPONSE>
+    </SIMPLERSP>
+  </MESSAGE>
+</CIM>

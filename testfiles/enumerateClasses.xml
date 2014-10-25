@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CIM CIMVERSION="2.0" DTDVERSION="2.0">
+  <MESSAGE ID="3" PROTOCOLVERSION="1.0">
+    <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateClasses">
+        <IRETURNVALUE>
+          <CLASS NAME="CIM_Collection" SUPERCLASS="CIM_ManagedElement">
+            <QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false">
+              <VALUE>TRUE</VALUE>
+            </QUALIFIER>
+            <QUALIFIER NAME="Version" TYPE="string" TOSUBCLASS="false" TRANSLATABLE="true">
+              <VALUE>2.6.0</VALUE>
+            </QUALIFIER>
+            <PROPERTY NAME="Caption" CLASSORIGIN="CIM_ManagedElement" PROPAGATED="true" TYPE="string">
+              <QUALIFIER NAME="Description" TYPE="string" OVERRIDABLE="false" TRANSLATABLE="true">
+                <VALUE><![CDATA[Long]]> long <![CDATA[text]]>...</VALUE>
+              </QUALIFIER>
+            </PROPERTY>
+            <PROPERTY NAME="Description" CLASSORIGIN="CIM_ManagedElement" PROPAGATED="true" TYPE="string"></PROPERTY>
+            <METHOD NAME="ActivatePolicySet" TYPE="uint32" PROPAGATED="true">
+              <QUALIFIER NAME="ValueMap" TYPE="string">
+                <VALUE.ARRAY>
+                  <VALUE>0</VALUE>
+                  <VALUE>1</VALUE>
+                  <VALUE>2</VALUE>
+                  <VALUE>3</VALUE>
+                  <VALUE>4</VALUE>
+                  <VALUE>..</VALUE>
+                  <VALUE>0x8000..</VALUE>
+                </VALUE.ARRAY>
+              </QUALIFIER>
+              <PARAMETER.REFERENCE NAME="Element" REFERENCECLASS="CIM_ManagedElement">
+                <QUALIFIER NAME="IN" TYPE="boolean" OVERRIDABLE="false">
+                  <VALUE>TRUE</VALUE>
+                </QUALIFIER>
+              </PARAMETER.REFERENCE>
+              <PARAMETER.REFARRAY NAME="RefA" REFERENCECLASS="CIM_ManagedElement">
+                <QUALIFIER NAME="IN" TYPE="boolean" OVERRIDABLE="false">
+                  <VALUE>true</VALUE>
+                </QUALIFIER>
+              </PARAMETER.REFARRAY>
+              <PARAMETER NAME="Count" TYPE="sint32">
+                <QUALIFIER NAME="OUT" TYPE="boolean" OVERRIDABLE="false">
+                  <VALUE>TRUE</VALUE>
+                </QUALIFIER>
+              </PARAMETER>
+            </METHOD>
+          </CLASS>
+          <CLASS NAME="CIM_Profile" SUPERCLASS="CIM_Collection">
+            <PROPERTY NAME="InstanceID" CLASSORIGIN="CIM_Profile" TYPE="string" PROPAGATED="true">
+              <QUALIFIER NAME="Key" TYPE="boolean" OVERRIDABLE="false">
+                <VALUE>TRUE</VALUE>
+              </QUALIFIER>
+              <QUALIFIER NAME="Description" TYPE="string" TRANSLATABLE="true">
+                <VALUE>This is a local property :)</VALUE>
+              </QUALIFIER>
+            </PROPERTY>
+            <PROPERTY NAME="Hello" CLASSORIGIN="CIM_Profile" TYPE="string" PROPAGATED="false">
+              <QUALIFIER NAME="Description" TYPE="string" TRANSLATABLE="true">
+                <VALUE>This is a local property with PROPAGATED=false :)</VALUE>
+              </QUALIFIER>
+            </PROPERTY>
+            <PROPERTY.ARRAY NAME="EmptyPropA" TYPE="string">
+              <VALUE.ARRAY/>
+            </PROPERTY.ARRAY>
+            <PROPERTY.ARRAY NAME="NullPropA" TYPE="string"/>
+          </CLASS>
+          <CLASS NAME="SampleAssocClass">
+            <QUALIFIER NAME="Association" TYPE="boolean" OVERRIDABLE="true">
+              <VALUE>true</VALUE>
+            </QUALIFIER>
+            <PROPERTY.REFERENCE NAME="OneSide" REFERENCECLASS="SampleClass"/>
+            <PROPERTY.REFERENCE NAME="OtherSide" REFERENCECLASS="SampleClass"/>
+          </CLASS>
+        </IRETURNVALUE>
+      </IMETHODRESPONSE>
+    </SIMPLERSP>
+  </MESSAGE>
+</CIM>

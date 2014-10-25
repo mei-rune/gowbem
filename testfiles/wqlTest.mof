@@ -1,0 +1,84 @@
+
+class wqlTestClass
+{
+	[key]
+	string name;
+
+	sint32 sint32Data;
+	boolean booleanData;
+	uint64 uint64Data;
+	string stringData;
+	real64 realData;
+
+};
+
+instance of wqlTestClass
+{
+	name = "test1";
+
+	sint32Data = 0;
+};
+
+instance of wqlTestClass
+{
+	name = "test2";
+
+	sint32Data = 10;
+};
+
+instance of wqlTestClass
+{
+	name = "test3";
+
+	booleanData = false;
+};
+
+instance of wqlTestClass
+{
+	name = "test4";
+
+	booleanData = true;
+};
+
+instance of wqlTestClass
+{
+	name = "test5";
+
+	uint64Data = 5000000000000;
+};
+
+instance of wqlTestClass
+{
+	name = "test6";
+
+	uint64Data = 10;
+};
+
+instance of wqlTestClass
+{
+	name = "test7";
+
+	stringData = "abc";
+};
+
+instance of wqlTestClass
+{
+	name = "test8";
+
+	stringData = "test";
+};
+
+instance of wqlTestClass
+{
+	name = "test9";
+
+	realData = 123.456789;
+};
+
+instance of wqlTestClass
+{
+	name = "test10";
+
+	realData = 4567890123.0e18;
+};
+

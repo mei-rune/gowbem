@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<CIM CIMVERSION="2.0" DTDVERSION="2.0">
+	<MESSAGE ID="4" PROTOCOLVERSION="1.0">
+		<SIMPLERSP>
+			<METHODRESPONSE NAME="SampleMethodResponse">
+				<RETURNVALUE>
+					<VALUE.REFERENCE>
+					<CLASSPATH>
+						<NAMESPACEPATH>
+							<HOST>https://[::1]:5999</HOST>
+							<LOCALNAMESPACEPATH>
+								<NAMESPACE NAME="root"/>
+								<NAMESPACE NAME="cimv2"/>
+							</LOCALNAMESPACEPATH>
+						</NAMESPACEPATH>
+						<CLASSNAME NAME="CIM_SampleClass"/>
+					</CLASSPATH>
+					</VALUE.REFERENCE>
+				</RETURNVALUE>
+				<PARAMVALUE NAME="outParam" PARAMTYPE="reference">
+					<VALUE.REFERENCE>
+					<INSTANCEPATH>
+						<NAMESPACEPATH>
+							<HOST>https://[::1]:5999</HOST>
+							<LOCALNAMESPACEPATH>
+								<NAMESPACE NAME="root"/>
+								<NAMESPACE NAME="cimv2"/>
+							</LOCALNAMESPACEPATH>
+						</NAMESPACEPATH>
+						<INSTANCENAME CLASSNAME="CIM_SampleClass">
+							<KEYBINDING NAME="KeyProp">
+								<KEYVALUE TYPE="string">Hello</KEYVALUE>
+							</KEYBINDING>
+						</INSTANCENAME>
+					</INSTANCEPATH>
+					</VALUE.REFERENCE>
+				</PARAMVALUE>
+			</METHODRESPONSE>
+		</SIMPLERSP>
+	</MESSAGE>
+</CIM>

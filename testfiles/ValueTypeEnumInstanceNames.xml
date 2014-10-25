@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CIM CIMVERSION="2.0" DTDVERSION="2.0">
+  <MESSAGE ID="7" PROTOCOLVERSION="1.0">
+    <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateInstanceNames">
+        <IRETURNVALUE>
+          <INSTANCENAME CLASSNAME="SampleClass">
+          
+            <KEYBINDING NAME="StringProp">
+              <KEYVALUE VALUETYPE="string">Hello</KEYVALUE>
+            </KEYBINDING>
+            
+            <KEYBINDING NAME="DTAbsoluteProp">
+              <KEYVALUE VALUETYPE="string">20070314160503.566012+010</KEYVALUE>
+            </KEYBINDING>
+            <KEYBINDING NAME="DTIntervalProp">
+              <KEYVALUE VALUETYPE="string">00000133102418.******:000</KEYVALUE>
+            </KEYBINDING>
+            
+            <KEYBINDING NAME="UInt64Prop">
+              <KEYVALUE VALUETYPE="numeric">112233445566778899</KEYVALUE>
+            </KEYBINDING>
+            <KEYBINDING NAME="SInt64Prop">
+              <KEYVALUE VALUETYPE="numeric">-20</KEYVALUE>
+            </KEYBINDING>
+            <KEYBINDING NAME="Real64Prop">
+              <KEYVALUE VALUETYPE="numeric">3.14</KEYVALUE>
+            </KEYBINDING>
+            
+            <KEYBINDING NAME="BooleanProp">
+              <KEYVALUE VALUETYPE="boolean">false</KEYVALUE>
+            </KEYBINDING>
+      
+          </INSTANCENAME>
+        </IRETURNVALUE>
+      </IMETHODRESPONSE>
+    </SIMPLERSP>
+  </MESSAGE>
+</CIM>
