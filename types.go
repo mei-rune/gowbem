@@ -362,9 +362,17 @@ type CimValueObject struct {
 //         </xs:complexType>
 //     </xs:element>
 type CimValueNamedInstance struct {
-	XMLName  xml.Name        `xml:"VALUE.NAMEDINSTANCE"`
-	Class    CimInstanceName `xml:"INSTANCENAME"`
-	Instance CimInstance     `xml:"INSTANCE"`
+	XMLName      xml.Name        `xml:"VALUE.NAMEDINSTANCE"`
+	InstanceName CimInstanceName `xml:"INSTANCENAME"`
+	Instance     CimInstance     `xml:"INSTANCE"`
+}
+
+func (self *CimValueNamedInstance) GetName() CIMInstanceName {
+	return &self.InstanceName
+}
+
+func (self *CimValueNamedInstance) GetInstance() CIMInstance {
+	return &self.Instance
 }
 
 //     <xs:element name="VALUE.NAMEDOBJECT">
@@ -1997,11 +2005,28 @@ type CimIReturnValue struct {
 	QualifierDeclarations     []CimQualifierDeclaration     `xml:"QUALIFIER.DECLARATION,omitempty"`
 	ValueArray                CimValueArray                 `xml:"VALUE.ARRAY,omitempty"`
 	ValueReference            *CimValueReference            `xml:"VALUE.REFERENCE,omitempty"`
-	Classes                   []CimClass                    `xml:"CLASS,omitempty"`
-	Instances                 []CimInstance                 `xml:"INSTANCE,omitempty"`
-	InstancePaths             []CimInstancePath             `xml:"INSTANCEPATH,omitempty"`
-	ValueNamedInstances       []CimValueNamedInstance       `xml:"VALUE.NAMEDINSTANCE,omitempty"`
-	ValueInstanceWithPaths    []CimValueInstanceWithPath    `xml:"VALUE.INSTANCEWITHPATH,omitempty"`
+	Classes                   []CimClassInnerXml            `xml:"CLASS,omitempty"`
+	//Classes                   []CimClass            `xml:"CLASS,omitempty"`
+	Instances              []CimInstance              `xml:"INSTANCE,omitempty"`
+	InstancePaths          []CimInstancePath          `xml:"INSTANCEPATH,omitempty"`
+	ValueNamedInstances    []CimValueNamedInstance    `xml:"VALUE.NAMEDINSTANCE,omitempty"`
+	ValueInstanceWithPaths []CimValueInstanceWithPath `xml:"VALUE.INSTANCEWITHPATH,omitempty"`
+}
+
+type CimClassInnerXml struct {
+	XMLName xml.Name `xml:"CLASS"`
+
+	Name       string `xml:"NAME,attr"`
+	SuperClass string `xml:"SUPERCLASS,attr,omitempty"`
+	Text       string `xml:",innerxml"`
+}
+
+func (self *CimClassInnerXml) String() string {
+	if "" == self.SuperClass {
+		return `<CLASS NAME="` + self.Name + `">` + self.Text + "</CLASS>"
+	} else {
+		return `<CLASS NAME="` + self.Name + `"  SUPERCLASS="` + self.SuperClass + `" >` + self.Text + "</CLASS>"
+	}
 }
 
 //     <xs:element name="MULTIEXPREQ">

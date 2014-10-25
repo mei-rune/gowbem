@@ -242,3 +242,8 @@ type CIMObjectPath interface {
 	 */
 	GetScheme() string
 }
+
+type CIMInstanceWithName interface {
+	GetName() CIMInstanceName
+	GetInstance() CIMInstance
+}

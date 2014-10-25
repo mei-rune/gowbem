@@ -7,13 +7,18 @@ import (
 )
 
 var (
-	messageNotExists         = errors.New("CIM.MESSAGE isn't exists.")
-	simpleReqNotExists       = errors.New("CIM.MESSAGE.SIMPLERSP isn't exists.")
-	imethodResponseNotExists = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE isn't exists.")
-	ireturnValueNotExists    = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE isn't exists.")
-	instancePathNotExists    = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.INSTANCEPATH isn't exists.")
-	instanceNamesNotExists   = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.INSTANCENAME isn't exists.")
-	classNamesNotExists      = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.CLASSNAME isn't exists.")
+	messageNotExists             = errors.New("CIM.MESSAGE isn't exists.")
+	simpleReqNotExists           = errors.New("CIM.MESSAGE.SIMPLERSP isn't exists.")
+	imethodResponseNotExists     = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE isn't exists.")
+	ireturnValueNotExists        = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE isn't exists.")
+	instancePathNotExists        = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.INSTANCEPATH isn't exists.")
+	instanceNamesNotExists       = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.INSTANCENAME isn't exists.")
+	classNamesNotExists          = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.CLASSNAME isn't exists.")
+	instancesNotExists           = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.INSTANCE isn't exists.")
+	instancesMutiChioce          = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.INSTANCE is greate one.")
+	valueNamedInstancesNotExists = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.VALUE.NAMEDINSTANCE isn't exists.")
+	classesNotExists             = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.CLASS isn't exists.")
+	classesMutiChioce            = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.CLASS is greate one.")
 )
 
 func booleanString(b bool) string {
@@ -205,7 +210,7 @@ func (c *ClientCIMXML) EnumerateInstanceNames(namespaceName, className string) (
 }
 
 func (c *ClientCIMXML) GetInstance(namespaceName string, instanceName CIMInstanceName, localOnly bool,
-	includeQualifiers bool, includeClassOrigin bool, propertyList []string) ([]CIMInstance, error) {
+	includeQualifiers bool, includeClassOrigin bool, propertyList []string) (CIMInstance, error) {
 
 	if "" == namespaceName {
 		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
@@ -290,8 +295,12 @@ func (c *ClientCIMXML) GetInstance(namespaceName string, instanceName CIMInstanc
 		if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue {
 			return ireturnValueNotExists
 		}
-		if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances {
-			return instanceNamesNotExists
+		if 0 == len(cim.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances) {
+			return instancesNotExists
+		}
+
+		if 1 < len(cim.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances) {
+			return instancesMutiChioce
 		}
 		return nil
 	}}
@@ -308,9 +317,338 @@ func (c *ClientCIMXML) GetInstance(namespaceName string, instanceName CIMInstanc
 		return nil, err
 	}
 
-	results := make([]CIMInstance, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances))
-	for idx, instance := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances {
+	if 0 == len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances) {
+		return nil, nil
+	}
+	return &resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances[0], nil
+}
+
+func (c *ClientCIMXML) EnumerateInstances(namespaceName, className string, deepInheritance bool,
+	localOnly bool, includeQualifiers bool, includeClassOrigin bool, propertyList []string) ([]CIMInstanceWithName, error) {
+
+	if "" == namespaceName {
+		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
+			"namespace name is empty.")
+	}
+
+	if "" == className {
+		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
+			"class name is empty.")
+	}
+
+	names := strings.Split(namespaceName, "/")
+	namespaces := make([]CimNamespace, len(names))
+	for idx, name := range names {
+		namespaces[idx].Name = name
+	}
+
+	var properties CimValueArray
+	if 0 == len(propertyList) {
+		properties = CimValueArray(make([]CimValueOrNull, len(propertyList)))
+		for idx, s := range propertyList {
+			properties[idx] = CimValueOrNull{Value: &CimValue{Value: s}}
+		}
+	}
+	paramValues := []CimIParamValue{
+		CimIParamValue{
+			Name:      "ClassName",
+			ClassName: &CimClassName{Name: className},
+		},
+
+		CimIParamValue{
+			Name:  "LocalOnly",
+			Value: &CimValue{Value: booleanString(localOnly)},
+		},
+
+		CimIParamValue{
+			Name:  "DeepInheritance",
+			Value: &CimValue{Value: booleanString(deepInheritance)},
+		},
+
+		CimIParamValue{
+			Name:  "IncludeQualifiers",
+			Value: &CimValue{Value: booleanString(includeQualifiers)},
+		},
+		CimIParamValue{
+			Name:  "IncludeClassOrigin",
+			Value: &CimValue{Value: booleanString(includeClassOrigin)},
+		},
+		CimIParamValue{
+			Name:       "PropertyList",
+			ValueArray: properties,
+		},
+	}
+
+	simpleReq := &CimSimpleReq{IMethodCall: &CimIMethodCall{
+		Name:               "EnumerateInstances",
+		LocalNamespacePath: CimLocalNamespacePath{Namespaces: namespaces},
+		ParamValues:        paramValues,
+	}}
+
+	req := &CIM{
+		CimVersion: c.CimVersion,
+		DtdVersion: c.DtdVersion,
+		Message: &CimMessage{
+			Id:              c.generateId(),
+			ProtocolVersion: c.ProtocolVersion,
+			SimpleReq:       simpleReq,
+		},
+		//Declaration: &CimDeclaration,
+	}
+
+	resp := &CIM{hasFault: func(cim *CIM) error {
+		if nil == cim.Message {
+			return messageNotExists
+		}
+		if nil == cim.Message.SimpleRsp {
+			return simpleReqNotExists
+		}
+		if nil == cim.Message.SimpleRsp.IMethodResponse {
+			return imethodResponseNotExists
+		}
+		if nil != cim.Message.SimpleRsp.IMethodResponse.Error {
+			e := cim.Message.SimpleRsp.IMethodResponse.Error
+			return WBEMException(CIMStatusCode(e.Code), e.Description)
+		}
+		if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue {
+			return ireturnValueNotExists
+		}
+		if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueNamedInstances {
+			return valueNamedInstancesNotExists
+		}
+		return nil
+	}}
+
+	// CIMProtocolVersion: 1.0
+	// CIMOperation: MethodCall
+	// CIMMethod: EnumerateClassNames
+	// CIMObject: root%2Fcimv2
+
+	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+		"CIMOperation": "MethodCall",
+		"CIMMethod":    "EnumerateInstances",
+		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
+		return nil, err
+	}
+
+	results := make([]CIMInstanceWithName, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueNamedInstances))
+	for idx, instance := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueNamedInstances {
 		results[idx] = &instance
+	}
+	return results, nil
+}
+
+func (c *ClientCIMXML) GetClass(namespaceName string, className string, localOnly bool,
+	includeQualifiers bool, includeClassOrigin bool, propertyList []string) (string, error) {
+
+	if "" == namespaceName {
+		return "", WBEMException(CIM_ERR_INVALID_PARAMETER,
+			"namespace name is empty.")
+	}
+
+	if "" == className {
+		return "", WBEMException(CIM_ERR_INVALID_PARAMETER,
+			"class name is empty.")
+	}
+
+	names := strings.Split(namespaceName, "/")
+	namespaces := make([]CimNamespace, len(names))
+	for idx, name := range names {
+		namespaces[idx].Name = name
+	}
+
+	var properties CimValueArray
+	if 0 == len(propertyList) {
+		properties = CimValueArray(make([]CimValueOrNull, len(propertyList)))
+		for idx, s := range propertyList {
+			properties[idx] = CimValueOrNull{Value: &CimValue{Value: s}}
+		}
+	}
+	paramValues := []CimIParamValue{
+		CimIParamValue{
+			Name:      "ClassName",
+			ClassName: &CimClassName{Name: className},
+		},
+
+		CimIParamValue{
+			Name:  "LocalOnly",
+			Value: &CimValue{Value: booleanString(localOnly)},
+		},
+
+		CimIParamValue{
+			Name:  "IncludeQualifiers",
+			Value: &CimValue{Value: booleanString(includeQualifiers)},
+		},
+		CimIParamValue{
+			Name:  "IncludeClassOrigin",
+			Value: &CimValue{Value: booleanString(includeClassOrigin)},
+		},
+		CimIParamValue{
+			Name:       "PropertyList",
+			ValueArray: properties,
+		},
+	}
+
+	simpleReq := &CimSimpleReq{IMethodCall: &CimIMethodCall{
+		Name:               "GetClass",
+		LocalNamespacePath: CimLocalNamespacePath{Namespaces: namespaces},
+		ParamValues:        paramValues,
+	}}
+
+	req := &CIM{
+		CimVersion: c.CimVersion,
+		DtdVersion: c.DtdVersion,
+		Message: &CimMessage{
+			Id:              c.generateId(),
+			ProtocolVersion: c.ProtocolVersion,
+			SimpleReq:       simpleReq,
+		},
+		//Declaration: &CimDeclaration,
+	}
+
+	resp := &CIM{hasFault: func(cim *CIM) error {
+		if nil == cim.Message {
+			return messageNotExists
+		}
+		if nil == cim.Message.SimpleRsp {
+			return simpleReqNotExists
+		}
+		if nil == cim.Message.SimpleRsp.IMethodResponse {
+			return imethodResponseNotExists
+		}
+		if nil != cim.Message.SimpleRsp.IMethodResponse.Error {
+			e := cim.Message.SimpleRsp.IMethodResponse.Error
+			return WBEMException(CIMStatusCode(e.Code), e.Description)
+		}
+		if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue {
+			return ireturnValueNotExists
+		}
+		if 0 == len(cim.Message.SimpleRsp.IMethodResponse.ReturnValue.Classes) {
+			return classesNotExists
+		}
+
+		if 1 < len(cim.Message.SimpleRsp.IMethodResponse.ReturnValue.Classes) {
+			return classesMutiChioce
+		}
+		return nil
+	}}
+
+	// CIMProtocolVersion: 1.0
+	// CIMOperation: MethodCall
+	// CIMMethod: EnumerateClassNames
+	// CIMObject: root%2Fcimv2
+
+	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+		"CIMOperation": "MethodCall",
+		"CIMMethod":    "GetClass",
+		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
+		return "", err
+	}
+
+	return resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Classes[0].String(), nil
+}
+
+func (c *ClientCIMXML) EnumerateClasses(namespaceName string, className string, deepInheritance bool,
+	localOnly bool, includeQualifiers bool, includeClassOrigin bool) ([]string, error) {
+
+	if "" == namespaceName {
+		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
+			"namespace name is empty.")
+	}
+
+	// if "" == className {
+	// 	return "", WBEMException(CIM_ERR_INVALID_PARAMETER,
+	// 		"class name is empty.")
+	// }
+
+	names := strings.Split(namespaceName, "/")
+	namespaces := make([]CimNamespace, len(names))
+	for idx, name := range names {
+		namespaces[idx].Name = name
+	}
+
+	paramValues := []CimIParamValue{
+		CimIParamValue{
+			Name:  "LocalOnly",
+			Value: &CimValue{Value: booleanString(localOnly)},
+		},
+		CimIParamValue{
+			Name:  "DeepInheritance",
+			Value: &CimValue{Value: booleanString(deepInheritance)},
+		},
+
+		CimIParamValue{
+			Name:  "IncludeQualifiers",
+			Value: &CimValue{Value: booleanString(includeQualifiers)},
+		},
+		CimIParamValue{
+			Name:  "IncludeClassOrigin",
+			Value: &CimValue{Value: booleanString(includeClassOrigin)},
+		},
+	}
+
+	if "" != className {
+		paramValues = append(paramValues, CimIParamValue{
+			Name:      "ClassName",
+			ClassName: &CimClassName{Name: className},
+		})
+	}
+
+	simpleReq := &CimSimpleReq{IMethodCall: &CimIMethodCall{
+		Name:               "EnumerateClasses",
+		LocalNamespacePath: CimLocalNamespacePath{Namespaces: namespaces},
+		ParamValues:        paramValues,
+	}}
+
+	req := &CIM{
+		CimVersion: c.CimVersion,
+		DtdVersion: c.DtdVersion,
+		Message: &CimMessage{
+			Id:              c.generateId(),
+			ProtocolVersion: c.ProtocolVersion,
+			SimpleReq:       simpleReq,
+		},
+		//Declaration: &CimDeclaration,
+	}
+
+	resp := &CIM{hasFault: func(cim *CIM) error {
+		if nil == cim.Message {
+			return messageNotExists
+		}
+		if nil == cim.Message.SimpleRsp {
+			return simpleReqNotExists
+		}
+		if nil == cim.Message.SimpleRsp.IMethodResponse {
+			return imethodResponseNotExists
+		}
+		if nil != cim.Message.SimpleRsp.IMethodResponse.Error {
+			e := cim.Message.SimpleRsp.IMethodResponse.Error
+			return WBEMException(CIMStatusCode(e.Code), e.Description)
+		}
+		if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue {
+			return ireturnValueNotExists
+		}
+		// if 0 == len(cim.Message.SimpleRsp.IMethodResponse.ReturnValue.Classes) {
+		// 	return classesNotExists
+		// }
+		return nil
+	}}
+
+	// CIMProtocolVersion: 1.0
+	// CIMOperation: MethodCall
+	// CIMMethod: EnumerateClassNames
+	// CIMObject: root%2Fcimv2
+
+	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+		"CIMOperation": "MethodCall",
+		"CIMMethod":    "EnumerateClasses",
+		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
+		return nil, err
+	}
+
+	results := make([]string, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Classes))
+	for idx, class := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Classes {
+		results[idx] = class.String()
 	}
 	return results, nil
 }

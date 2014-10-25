@@ -2,7 +2,6 @@ package wbem
 
 import (
 	"flag"
-	"net/http"
 	_ "net/http/pprof"
 	"net/url"
 	"testing"
@@ -66,9 +65,9 @@ func TestEnumerateClassNames(t *testing.T) {
 
 func TestEnumerateInstanceNames(t *testing.T) {
 
-	go func() {
-		http.ListenAndServe(":", nil)
-	}()
+	// go func() {
+	// 	http.ListenAndServe(":", nil)
+	// }()
 
 	c, e := NewClientCIMXML(getTestUri(), false)
 	if nil != e {
@@ -89,23 +88,96 @@ func TestEnumerateInstanceNames(t *testing.T) {
 			break
 		}
 		//t.Log(name)
-		instances, e := c.GetInstance("root/cimv2", name, true, true, true, nil)
+		instance, e := c.GetInstance("root/cimv2", name, true, true, true, nil)
 		if nil != e {
 			t.Error(e)
 			continue
 		}
-		if 0 == len(instances) {
-			t.Error("instances list is emtpy")
-			continue
-		}
+		// if 0 == len(instances) {
+		// 	t.Error("instances list is emtpy")
+		// 	continue
+		// }
 
 		t.Log(name)
-		for _, instance := range instances {
-			for i := 0; i < instance.GetPropertyCount(); i++ {
-				pr := instance.GetPropertyByIndex(i)
-				t.Log(pr.GetName(), "=", pr.GetValue())
-			}
+
+		for i := 0; i < instance.GetPropertyCount(); i++ {
+			pr := instance.GetPropertyByIndex(i)
+			t.Log(pr.GetName(), "=", pr.GetValue())
 		}
 	}
+}
 
+func TestEnumerateInstances(t *testing.T) {
+	// go func() {
+	// 	http.ListenAndServe(":", nil)
+	// }()
+
+	c, e := NewClientCIMXML(getTestUri(), false)
+	if nil != e {
+		t.Error(e)
+		return
+	}
+	instances, e := c.EnumerateInstances("root/cimv2", "Linux_UnixProcess", false, false, false, false, nil)
+	if nil != e {
+		t.Error(e)
+		return
+	}
+	if 0 == len(instances) {
+		t.Error("instance list is emtpy")
+		return
+	}
+
+	for _, instance := range instances {
+		t.Log(instance.GetName())
+		for i := 0; i < instance.GetInstance().GetPropertyCount(); i++ {
+			pr := instance.GetInstance().GetPropertyByIndex(i)
+			t.Log(pr.GetName(), "=", pr.GetValue())
+		}
+	}
+}
+
+func TestGetClass(t *testing.T) {
+	// go func() {
+	// 	http.ListenAndServe(":", nil)
+	// }()
+
+	c, e := NewClientCIMXML(getTestUri(), false)
+	if nil != e {
+		t.Error(e)
+		return
+	}
+	class, e := c.GetClass("root/cimv2", "Linux_UnixProcess", true, true, true, nil)
+	if nil != e {
+		t.Error(e)
+		return
+	}
+	if 0 == len(class) {
+		t.Error("class is emtpy")
+		return
+	}
+
+	t.Log(class)
+}
+
+func TestEnumerateClasses(t *testing.T) {
+	// go func() {
+	//  http.ListenAndServe(":", nil)
+	// }()
+
+	c, e := NewClientCIMXML(getTestUri(), false)
+	if nil != e {
+		t.Error(e)
+		return
+	}
+	classes, e := c.EnumerateClasses("root/cimv2", "CIM_UnixProcess", true, true, true, true)
+	if nil != e {
+		t.Error(e)
+		return
+	}
+	if 0 == len(classes) {
+		t.Error("classes is emtpy")
+		return
+	}
+
+	t.Log(classes)
 }
