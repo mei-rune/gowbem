@@ -64,7 +64,6 @@ func TestEnumerateClassNames(t *testing.T) {
 }
 
 func TestEnumerateInstanceNames(t *testing.T) {
-
 	// go func() {
 	// 	http.ListenAndServe(":", nil)
 	// }()
@@ -88,7 +87,7 @@ func TestEnumerateInstanceNames(t *testing.T) {
 			break
 		}
 		//t.Log(name)
-		instance, e := c.GetInstance("root/cimv2", name, true, true, true, nil)
+		instance, e := c.GetInstanceByInstanceName("root/cimv2", name, true, true, true, nil)
 		if nil != e {
 			t.Error(e)
 			continue
@@ -103,6 +102,25 @@ func TestEnumerateInstanceNames(t *testing.T) {
 		for i := 0; i < instance.GetPropertyCount(); i++ {
 			pr := instance.GetPropertyByIndex(i)
 			t.Log(pr.GetName(), "=", pr.GetValue())
+		}
+
+		namespace, className, keyBindings, e := Parse(name.String())
+		if nil != e {
+			t.Error(e)
+			continue
+		}
+		if "" == namespace {
+			namespace = "root/cimv2"
+		}
+
+		instance2, e := c.GetInstance(namespace, className, keyBindings, true, true, true, nil)
+		if nil != e {
+			t.Error(e)
+			continue
+		}
+		if instance2.GetPropertyCount() != instance.GetPropertyCount() {
+			t.Error("property count isn't equals.")
+			continue
 		}
 	}
 }

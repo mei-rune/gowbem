@@ -208,10 +208,31 @@ func (c *ClientCIMXML) EnumerateInstanceNames(namespaceName, className string) (
 	}
 	return results, nil
 }
-
-func (c *ClientCIMXML) GetInstance(namespaceName string, instanceName CIMInstanceName, localOnly bool,
+func (c *ClientCIMXML) GetInstance(namespaceName, className string, keyBindings CIMKeyBindings, localOnly bool,
 	includeQualifiers bool, includeClassOrigin bool, propertyList []string) (CIMInstance, error) {
+	instanceName := &CimInstanceName{
+		ClassName: className,
+	}
 
+	switch keyBindings.Len() {
+	case 0:
+		return nil, errors.New("keyBindings is empty.")
+	case 1:
+		kb := keyBindings.Get(0)
+		if "_" == kb.GetName() {
+			instanceName.KeyValue = kb.(*CimKeyBinding).KeyValue
+			instanceName.ValueReference = kb.(*CimKeyBinding).ValueReference
+			break
+		}
+		fallthrough
+	default:
+		instanceName.KeyBindings = keyBindings.(CimKeyBindings)
+	}
+	return c.GetInstanceByInstanceName(namespaceName, instanceName, localOnly, includeQualifiers, includeClassOrigin, propertyList)
+}
+
+func (c *ClientCIMXML) GetInstanceByInstanceName(namespaceName string, instanceName CIMInstanceName, localOnly bool,
+	includeQualifiers bool, includeClassOrigin bool, propertyList []string) (CIMInstance, error) {
 	if "" == namespaceName {
 		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
 			"namespace name is empty.")
