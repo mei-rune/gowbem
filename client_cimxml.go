@@ -1,4 +1,4 @@
-package wbem
+package gowbem
 
 import (
 	"errors"
@@ -36,7 +36,7 @@ type ClientCIMXML struct {
 	ProtocolVersion string
 }
 
-func (c *ClientCIMXML) init(u url.URL, insecure bool) {
+func (c *ClientCIMXML) init(u *url.URL, insecure bool) {
 	c.Client.init(u, insecure)
 	c.CimVersion = "2.0"
 	c.DtdVersion = "2.0"
@@ -208,6 +208,7 @@ func (c *ClientCIMXML) EnumerateInstanceNames(namespaceName, className string) (
 	}
 	return results, nil
 }
+
 func (c *ClientCIMXML) GetInstance(namespaceName, className string, keyBindings CIMKeyBindings, localOnly bool,
 	includeQualifiers bool, includeClassOrigin bool, propertyList []string) (CIMInstance, error) {
 	instanceName := &CimInstanceName{
@@ -674,7 +675,7 @@ func (c *ClientCIMXML) EnumerateClasses(namespaceName string, className string, 
 	return results, nil
 }
 
-func NewClientCIMXML(u url.URL, insecure bool) (*ClientCIMXML, error) {
+func NewClientCIMXML(u *url.URL, insecure bool) (*ClientCIMXML, error) {
 	c := &ClientCIMXML{}
 	c.init(u, insecure)
 	return c, nil

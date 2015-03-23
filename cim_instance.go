@@ -1,4 +1,4 @@
-package wbem
+package gowbem
 
 /**
  * <code>CIMElement</code> is an abstract base class that represents a CIM

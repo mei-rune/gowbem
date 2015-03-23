@@ -1,4 +1,4 @@
-package wbem
+package gowbem
 
 import (
 	"bytes"
@@ -60,14 +60,14 @@ type Client struct {
 	cached *bytes.Buffer
 }
 
-func NewClient(u url.URL, insecure bool) *Client {
+func NewClient(u *url.URL, insecure bool) *Client {
 	c := &Client{}
 	c.init(u, insecure)
 	return c
 }
 
-func (c *Client) init(u url.URL, insecure bool) {
-	c.u = u
+func (c *Client) init(u *url.URL, insecure bool) {
+	c.u = *u
 	c.insecure = insecure
 	c.cn = atomic.AddUint64(&cn, 1)
 	c.rn = 0
@@ -115,9 +115,8 @@ func (c *Client) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*c = *NewClient(*m.URL, m.Insecure)
+	*c = *NewClient(m.URL, m.Insecure)
 	c.Jar.SetCookies(m.URL, m.Cookies)
-
 	return nil
 }
 

@@ -1,4 +1,4 @@
-package wbem
+package gowbem
 
 import (
 	"flag"
@@ -17,8 +17,8 @@ var (
 	userpassword = flag.String("password", "root", "")
 )
 
-func getTestUri() url.URL {
-	return url.URL{
+func getTestUri() *url.URL {
+	return &url.URL{
 		Scheme: *schema,
 		User:   url.UserPassword(*username, *userpassword),
 		Host:   *host + ":" + *port,

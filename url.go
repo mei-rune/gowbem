@@ -1,4 +1,4 @@
-package wbem
+package gowbem
 
 import (
 	"bytes"
@@ -36,7 +36,6 @@ func is_name_char(c rune) bool {
 }
 
 func Parse(s string) (namespace string, class_name string, keyBindings CimKeyBindings, e error) {
-
 	var buf bytes.Buffer
 	namespace_last := 0
 	var propertyName string
