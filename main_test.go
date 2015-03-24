@@ -82,25 +82,21 @@ func TestEnumerateInstanceNames(t *testing.T) {
 		t.Error("class list is emtpy")
 		return
 	}
+
 	for idx, name := range names {
 		if idx > 10 {
 			break
 		}
-		//t.Log(name)
-		instance, e := c.GetInstanceByInstanceName("root/cimv2", name, true, true, true, nil)
+
+		instance1, e := c.GetInstanceByInstanceName("root/cimv2", name, true, true, true, nil)
 		if nil != e {
 			t.Error(e)
 			continue
 		}
-		// if 0 == len(instances) {
-		// 	t.Error("instances list is emtpy")
-		// 	continue
-		// }
+		t.Log(instance1)
 
-		t.Log(name)
-
-		for i := 0; i < instance.GetPropertyCount(); i++ {
-			pr := instance.GetPropertyByIndex(i)
+		for i := 0; i < instance1.GetPropertyCount(); i++ {
+			pr := instance1.GetPropertyByIndex(i)
 			t.Log(pr.GetName(), "=", pr.GetValue())
 		}
 
@@ -118,7 +114,8 @@ func TestEnumerateInstanceNames(t *testing.T) {
 			t.Error(e)
 			continue
 		}
-		if instance2.GetPropertyCount() != instance.GetPropertyCount() {
+
+		if instance2.GetPropertyCount() != instance1.GetPropertyCount() {
 			t.Error("property count isn't equals.")
 			continue
 		}

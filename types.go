@@ -228,6 +228,22 @@ type CimValue struct {
 	Value   string   `xml:",chardata"`
 }
 
+func (self *CimValue) GetValue() interface{} {
+	return self.Value
+}
+
+func (self *CimValue) IsNil() bool {
+	return false
+}
+
+func (self *CimValue) ToString(buf *bytes.Buffer) {
+	buf.WriteString(self.Value)
+}
+
+func (self *CimValue) String() string {
+	return self.Value
+}
+
 //     <xs:element name="VALUE.ARRAY">
 //         <xs:annotation>
 //             <xs:documentation>Defines an non-reference array value.
@@ -246,9 +262,74 @@ type CimValue struct {
 // }
 type CimValueArray []CimValueOrNull
 
+func (self CimValueArray) GetValue() interface{} {
+	if nil == self {
+		return nil
+	}
+	results := make([]interface{}, len(self))
+	for idx, v := range self {
+		results[idx] = v.GetValue()
+	}
+	return results
+}
+
+func (self CimValueArray) IsNil() bool {
+	return nil == self
+}
+
+func (self CimValueArray) ToString(buf *bytes.Buffer) {
+	if nil == self {
+		buf.WriteString(NULLSTRING)
+	} else if 0 == len(self) {
+		buf.WriteString("[]")
+	} else {
+		buf.WriteString("[")
+		for idx, v := range self {
+			if idx != 0 {
+				buf.WriteString(",")
+			}
+			v.ToString(buf)
+		}
+		buf.WriteString("]")
+	}
+}
+
+func (self *CimValueArray) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
+}
+
+const NULLSTRING = "null"
+
 type CimValueOrNull struct {
 	Value *CimValue     `xml:"VALUE,omitempty"`
 	Null  *CimValueNull `xml:"VALUE.NULL,omitempty"`
+}
+
+func (self *CimValueOrNull) GetValue() interface{} {
+	if nil == self.Value {
+		return nil
+	}
+	return self.Value.Value
+}
+
+func (self *CimValueOrNull) IsNil() bool {
+	return nil == self.Value
+}
+
+func (self *CimValueOrNull) ToString(buf *bytes.Buffer) {
+	if nil == self.Value {
+		buf.WriteString(NULLSTRING)
+	} else {
+		self.Value.ToString(buf)
+	}
+}
+
+func (self *CimValueOrNull) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
 }
 
 //     <xs:element name="VALUE.REFERENCE">
@@ -277,6 +358,10 @@ type CimValueReference struct {
 	InstanceName      *CimInstanceName      `xml:"INSTANCENAME,omitempty"`
 }
 
+func (self *CimValueReference) GetValue() interface{} {
+	return self.String()
+}
+
 func (self *CimValueReference) IsNil() bool {
 	return nil == self.ClassPath ||
 		nil == self.LocalClassPath ||
@@ -299,6 +384,8 @@ func (self *CimValueReference) ToString(buf *bytes.Buffer) {
 		self.LocalInstancePath.ToString(buf)
 	} else if nil != self.InstanceName {
 		self.InstanceName.ToString(buf)
+	} else {
+		buf.WriteString(NULLSTRING)
 	}
 }
 
@@ -326,9 +413,73 @@ func (self *CimValueReference) String() string {
 // }
 type CimValueRefArray []CimValueReferenceOrNull
 
+func (self CimValueRefArray) GetValue() interface{} {
+	if nil == self {
+		return nil
+	}
+	results := make([]interface{}, len(self))
+	for idx, v := range self {
+		results[idx] = v.GetValue()
+	}
+	return results
+}
+
+func (self CimValueRefArray) IsNil() bool {
+	return nil == self
+}
+
+func (self CimValueRefArray) ToString(buf *bytes.Buffer) {
+	if nil == self {
+		buf.WriteString(NULLSTRING)
+	} else if 0 == len(self) {
+		buf.WriteString("[]")
+	} else {
+		buf.WriteString("[")
+		for idx, v := range self {
+			if idx != 0 {
+				buf.WriteString(",")
+			}
+			v.ToString(buf)
+		}
+		buf.WriteString("]")
+	}
+}
+
+func (self *CimValueRefArray) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
+}
+
 type CimValueReferenceOrNull struct {
 	Value *CimValueReference
 	Null  *CimValueNull
+}
+
+func (self *CimValueReferenceOrNull) GetValue() interface{} {
+	if nil == self.Value {
+		return nil
+	}
+
+	return self.Value.GetValue()
+}
+
+func (self *CimValueReferenceOrNull) IsNil() bool {
+	return nil == self.Value
+}
+
+func (self *CimValueReferenceOrNull) ToString(buf *bytes.Buffer) {
+	if nil == self.Value {
+		buf.WriteString(NULLSTRING)
+	} else {
+		self.Value.ToString(buf)
+	}
+}
+
+func (self *CimValueReferenceOrNull) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
 }
 
 //     <xs:element name="VALUE.OBJECT">
@@ -801,11 +952,7 @@ func (self *CimInstanceName) ToString(buf *bytes.Buffer) {
 	buf.WriteString(self.ClassName)
 	if 0 != len(self.KeyBindings) {
 		buf.WriteString(".")
-		for _, kb := range self.KeyBindings {
-			kb.ToString(buf)
-			buf.WriteString(",")
-		}
-		buf.Truncate(buf.Len() - 1)
+		CimKeyBindings(self.KeyBindings).ToString(buf)
 		return
 	}
 	if nil != self.KeyValue {
@@ -954,6 +1101,24 @@ func (self CimKeyBindings) Len() int {
 
 func (self CimKeyBindings) Get(idx int) CIMKeyBinding {
 	return &self[idx]
+}
+
+func (self CimKeyBindings) ToString(buf *bytes.Buffer) {
+	if 0 == len(self) {
+		return
+	}
+
+	for _, kb := range self {
+		kb.ToString(buf)
+		buf.WriteString(",")
+	}
+	buf.Truncate(buf.Len() - 1)
+}
+
+func (self CimKeyBindings) String() string {
+	var buf bytes.Buffer
+	self.ToString(&buf)
+	return buf.String()
 }
 
 //     <xs:element name="KEYVALUE">
@@ -1310,7 +1475,7 @@ func (self *CimProperty) GetValue() interface{} {
 	if nil == self.Value {
 		return nil
 	}
-	return self.Value.Value
+	return self.Value.GetValue()
 }
 
 func (self *CimProperty) GetOriginClass() string {
@@ -1382,16 +1547,16 @@ func (self *CimPropertyArray) GetType() CIMType {
 }
 
 func (self *CimPropertyArray) GetValue() interface{} {
-	if 0 == len(self.ValueArray) {
+	if nil == self.ValueArray {
 		return nil
 	}
-	results := make([]interface{}, len(self.ValueArray))
-	for idx, v := range self.ValueArray {
-		if nil != v.Value {
-			results[idx] = v.Value.Value
-		}
-	}
-	return results
+	// results := make([]interface{}, len(self.ValueArray))
+	// for idx, v := range self.ValueArray {
+	// 	if nil != v.Value {
+	// 		results[idx] = v.Value.GetValue()
+	// 	}
+	// }
+	return self.ValueArray.GetValue()
 }
 
 func (self *CimPropertyArray) GetOriginClass() string {
@@ -1460,7 +1625,7 @@ func (self *CimPropertyReference) GetValue() interface{} {
 	if nil == self.ValueReference {
 		return nil
 	}
-	return self.ValueReference.String()
+	return self.ValueReference.GetValue()
 }
 
 func (self *CimPropertyReference) GetOriginClass() string {

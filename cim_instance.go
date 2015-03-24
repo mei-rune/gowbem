@@ -145,6 +145,7 @@ type CIMKeyBinding interface {
 type CIMKeyBindings interface {
 	Len() int
 	Get(idx int) CIMKeyBinding
+	String() string
 }
 
 type CIMInstanceName interface {
