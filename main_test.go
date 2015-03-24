@@ -196,3 +196,132 @@ func TestEnumerateClasses(t *testing.T) {
 
 	t.Log(classes)
 }
+
+// func TestAssociatorClasses(t *testing.T) {
+// 	c, e := NewClientCIMXML(getTestUri(), false)
+// 	if nil != e {
+// 		t.Error(e)
+// 		return
+// 	}
+
+// 	classes, e := c.EnumerateClasses("root/cimv2", "", true, true, true, true)
+// 	if nil != e {
+// 		t.Error(e)
+// 		return
+// 	}
+// 	has_ok := false
+// 	for _, cls := range classes {
+// 		var clsInstance CimClassInnerXml
+// 		if e := xml.Unmarshal([]byte(cls), &clsInstance); nil != e {
+// 			t.Log(e)
+// 			continue
+// 		}
+
+// 		fmt.Println(clsInstance.Name)
+// 		assoc_classes, e := c.AssociatorClasses("root/cimv2", clsInstance.Name, "", "", "", "", true, true, nil)
+// 		if nil != e {
+// 			t.Log(e)
+// 			continue
+// 		}
+// 		if 0 == len(assoc_classes) {
+// 			t.Log("classes is emtpy")
+// 			continue
+// 		}
+
+// 		has_ok = true
+// 		t.Log(assoc_classes)
+// 		fmt.Println(assoc_classes)
+// 	}
+// 	if !has_ok {
+// 		t.Error("failed")
+// 	}
+// }
+
+// func TestReferenceClasses(t *testing.T) {
+// 	c, e := NewClientCIMXML(getTestUri(), false)
+// 	if nil != e {
+// 		t.Error(e)
+// 		return
+// 	}
+
+// 	classes, e := c.EnumerateClasses("root/cimv2", "", true, true, true, true)
+// 	if nil != e {
+// 		t.Error(e)
+// 		return
+// 	}
+// 	has_ok := false
+// 	for _, cls := range classes {
+// 		var clsInstance CimClassInnerXml
+// 		if e := xml.Unmarshal([]byte(cls), &clsInstance); nil != e {
+// 			t.Log(e)
+// 			continue
+// 		}
+
+// 		fmt.Println(clsInstance.Name)
+// 		assoc_classes, e := c.ReferenceClasses("root/cimv2", clsInstance.Name, "", "", true, true, nil)
+// 		if nil != e {
+// 			t.Log(e)
+// 			continue
+// 		}
+// 		if 0 == len(assoc_classes) {
+// 			t.Log("classes is emtpy")
+// 			continue
+// 		}
+
+// 		has_ok = true
+// 		t.Log(assoc_classes)
+// 		fmt.Println(assoc_classes)
+// 	}
+// 	if !has_ok {
+// 		t.Error("failed")
+// 	}
+// }
+
+// func TestReferenceNames(t *testing.T) {
+// 	c, e := NewClientCIMXML(getTestUri(), false)
+// 	if nil != e {
+// 		t.Error(e)
+// 		return
+// 	}
+// 	classes, e := c.EnumerateClasses("root/cimv2", "", true, true, true, true)
+// 	if nil != e {
+// 		t.Error(e)
+// 		return
+// 	}
+
+// 	for _, cls := range classes {
+// 		var clsInstance CimClassInnerXml
+// 		if e := xml.Unmarshal([]byte(cls), &clsInstance); nil != e {
+// 			t.Log(e)
+// 			continue
+// 		}
+
+// 		fmt.Println(clsInstance.Name)
+
+// 		instances, e := c.EnumerateInstances("root/cimv2", clsInstance.Name, true, true, true, true, nil)
+// 		if nil != e {
+// 			t.Error(e)
+// 			continue
+// 		}
+// 		has_ok := false
+// 		for _, instance := range instances {
+// 			fmt.Println(instance.GetName().String())
+// 			names, e := c.ReferenceNames("root/cimv2", instance.GetName(), "", "")
+// 			if nil != e {
+// 				t.Log(e)
+// 				continue
+// 			}
+// 			if 0 == len(names) {
+// 				t.Log("classes is emtpy")
+// 				continue
+// 			}
+
+// 			has_ok = true
+// 			t.Log(names)
+// 			fmt.Println(names)
+// 		}
+// 		if !has_ok {
+// 			t.Error("failed")
+// 		}
+// 	}
+// }
