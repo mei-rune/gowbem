@@ -1,4 +1,4 @@
-package wbem
+package gowbem
 
 import (
 	"strconv"

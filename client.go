@@ -1,4 +1,4 @@
-package wbem
+package gowbem
 
 import (
 	"bytes"
@@ -49,6 +49,8 @@ type RoundTripper interface {
 var cn uint64 // Client counter
 
 type Client struct {
+	rn uint64 // Request counter
+
 	http.Client
 
 	u        url.URL
@@ -56,18 +58,17 @@ type Client struct {
 
 	cn_str string // Client counter
 	cn     uint64 // Client counter
-	rn     uint64 // Request counter
 	cached *bytes.Buffer
 }
 
-func NewClient(u url.URL, insecure bool) *Client {
+func NewClient(u *url.URL, insecure bool) *Client {
 	c := &Client{}
 	c.init(u, insecure)
 	return c
 }
 
-func (c *Client) init(u url.URL, insecure bool) {
-	c.u = u
+func (c *Client) init(u *url.URL, insecure bool) {
+	c.u = *u
 	c.insecure = insecure
 	c.cn = atomic.AddUint64(&cn, 1)
 	c.rn = 0
@@ -115,9 +116,8 @@ func (c *Client) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	*c = *NewClient(*m.URL, m.Insecure)
+	*c = *NewClient(m.URL, m.Insecure)
 	c.Jar.SetCookies(m.URL, m.Cookies)
-
 	return nil
 }
 

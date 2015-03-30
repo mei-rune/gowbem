@@ -1,9 +1,10 @@
-package wbem
+package gowbem
 
 import (
 	"bytes"
 	"errors"
 	"strconv"
+	"strings"
 
 	"unicode"
 )
@@ -35,35 +36,80 @@ func is_name_char(c rune) bool {
 	return false
 }
 
-func Parse(s string) (namespace string, class_name string, keyBindings CimKeyBindings, e error) {
+func ParseKeyBindings(s string) (keyBindings CimKeyBindings, e error) {
+	_, _, keyBindings, e = parse(s, state_property_name_begin)
+	return
+}
 
+func ParseInstanceName(s string) (*CimInstanceName, error) {
+	ns, class_name, keyBindings, e := parse(s, state_init)
+	if nil != e {
+		return nil, e
+	}
+	if "" != ns {
+		return nil, errors.New("namespace isn't empty.")
+	}
+
+	return &CimInstanceName{
+		ClassName:   class_name,
+		KeyBindings: keyBindings,
+	}, nil
+}
+
+func ParseLocalInstancePath(s string) (*CimLocalInstancePath, error) {
+	ns, class_name, keyBindings, e := parse(s, state_init)
+	if nil != e {
+		return nil, e
+	}
+
+	return &CimLocalInstancePath{
+		LocalNamespacePath: CimLocalNamespacePath{Namespaces: ToCimNamespace(ns)},
+		InstanceName: CimInstanceName{
+			ClassName:   class_name,
+			KeyBindings: keyBindings,
+		}}, nil
+}
+
+func ToCimNamespace(ns string) []CimNamespace {
+	if "" == ns {
+		return nil
+	}
+	ss := strings.Split(ns, "/")
+	results := make([]CimNamespace, len(ss))
+	for idx, s := range ss {
+		results[idx].Name = s
+	}
+	return results
+}
+
+func Parse(s string) (namespace string, class_name string, keyBindings CimKeyBindings, e error) {
+	return parse(s, state_init)
+}
+
+func parse(s string, state int) (namespace string, class_name string, keyBindings CimKeyBindings, e error) {
 	var buf bytes.Buffer
 	namespace_last := 0
 	var propertyName string
 	var propertyType string
 
-	state := state_init
+	//state := state_init
 	for idx, c := range s {
 		switch state {
 		case state_init:
 			if is_name_char(c) {
-				buf.WriteRune(c)
 				continue
 			}
 			if '/' == c {
 				namespace_last = buf.Len()
-				buf.WriteRune(c)
 				continue
 			}
 			if '.' == c {
 				if 0 != namespace_last {
-					byteArray := buf.Bytes()
-					namespace = string(byteArray[:namespace_last])
-					class_name = string(byteArray[namespace_last+1:])
+					namespace = s[:namespace_last]
+					class_name = s[namespace_last+1 : idx]
 				} else {
-					class_name = buf.String()
+					class_name = s[:idx]
 				}
-				buf.Reset()
 				state = state_property_name_begin
 				continue
 			}
@@ -74,6 +120,7 @@ func Parse(s string) (namespace string, class_name string, keyBindings CimKeyBin
 				e = errors.New("invalid property - `" + s + "` at " + strconv.FormatInt(int64(idx), 10))
 				return
 			}
+			buf.Reset()
 			propertyName = ""
 			propertyType = ""
 			state = state_property_name

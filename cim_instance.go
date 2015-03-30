@@ -1,4 +1,4 @@
-package wbem
+package gowbem
 
 /**
  * <code>CIMElement</code> is an abstract base class that represents a CIM
@@ -145,6 +145,7 @@ type CIMKeyBinding interface {
 type CIMKeyBindings interface {
 	Len() int
 	Get(idx int) CIMKeyBinding
+	String() string
 }
 
 type CIMInstanceName interface {
