@@ -70,6 +70,10 @@ func Parse(s string) (namespace string, class_name string, keyBindings CimKeyBin
 			e = errors.New("invalid classpath - `" + s + "` at " + strconv.FormatInt(int64(idx), 10))
 			return
 		case state_property_name_begin:
+			if ',' == c {
+				e = errors.New("invalid property - `" + s + "` at " + strconv.FormatInt(int64(idx), 10))
+				return
+			}
 			propertyName = ""
 			propertyType = ""
 			state = state_property_name
