@@ -49,6 +49,8 @@ type RoundTripper interface {
 var cn uint64 // Client counter
 
 type Client struct {
+	rn uint64 // Request counter
+
 	http.Client
 
 	u        url.URL
@@ -56,7 +58,6 @@ type Client struct {
 
 	cn_str string // Client counter
 	cn     uint64 // Client counter
-	rn     uint64 // Request counter
 	cached *bytes.Buffer
 }
 
