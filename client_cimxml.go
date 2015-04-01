@@ -270,7 +270,7 @@ func (c *ClientCIMXML) GetInstanceByInstanceName(namespaceName string, instanceN
 			Value: &CimValue{Value: booleanString(includeClassOrigin)},
 		},
 	}
-	if 0 == len(propertyList) {
+	if 0 != len(propertyList) {
 		properties := CimValueArray(make([]CimValueOrNull, len(propertyList)))
 		for idx, s := range propertyList {
 			properties[idx] = CimValueOrNull{Value: &CimValue{Value: s}}
@@ -388,7 +388,7 @@ func (c *ClientCIMXML) EnumerateInstances(namespaceName, className string, deepI
 			Value: &CimValue{Value: booleanString(includeClassOrigin)},
 		},
 	}
-	if 0 == len(propertyList) {
+	if 0 != len(propertyList) {
 		properties := CimValueArray(make([]CimValueOrNull, len(propertyList)))
 		for idx, s := range propertyList {
 			properties[idx] = CimValueOrNull{Value: &CimValue{Value: s}}
@@ -497,7 +497,7 @@ func (c *ClientCIMXML) GetClass(namespaceName string, className string, localOnl
 			Value: &CimValue{Value: booleanString(includeClassOrigin)},
 		},
 	}
-	if 0 == len(propertyList) {
+	if 0 != len(propertyList) {
 		properties := CimValueArray(make([]CimValueOrNull, len(propertyList)))
 		for idx, s := range propertyList {
 			properties[idx] = CimValueOrNull{Value: &CimValue{Value: s}}
@@ -841,7 +841,7 @@ func (c *ClientCIMXML) AssociatorInstances(namespaceName string, instanceName CI
 		})
 	}
 
-	if 0 == len(propertyList) {
+	if 0 != len(propertyList) {
 		properties := CimValueArray(make([]CimValueOrNull, len(propertyList)))
 		for idx, s := range propertyList {
 			properties[idx] = CimValueOrNull{Value: &CimValue{Value: s}}
@@ -973,7 +973,7 @@ func (c *ClientCIMXML) AssociatorClasses(namespaceName, className, assocClass, r
 		})
 	}
 
-	if 0 == len(propertyList) {
+	if 0 != len(propertyList) {
 		properties := CimValueArray(make([]CimValueOrNull, len(propertyList)))
 		for idx, s := range propertyList {
 			properties[idx] = CimValueOrNull{Value: &CimValue{Value: s}}
@@ -1195,7 +1195,7 @@ func (c *ClientCIMXML) ReferenceInstances(namespaceName string, instanceName CIM
 		})
 	}
 
-	if 0 == len(propertyList) {
+	if 0 != len(propertyList) {
 		properties := CimValueArray(make([]CimValueOrNull, len(propertyList)))
 		for idx, s := range propertyList {
 			properties[idx] = CimValueOrNull{Value: &CimValue{Value: s}}
@@ -1313,7 +1313,7 @@ func (c *ClientCIMXML) ReferenceClasses(namespaceName, className, resultClass, r
 		})
 	}
 
-	if 0 == len(propertyList) {
+	if 0 != len(propertyList) {
 		properties := CimValueArray(make([]CimValueOrNull, len(propertyList)))
 		for idx, s := range propertyList {
 			properties[idx] = CimValueOrNull{Value: &CimValue{Value: s}}
