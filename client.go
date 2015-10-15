@@ -178,7 +178,7 @@ func (c *Client) RoundTrip(action string, headers map[string]string, reqBody int
 	//var rawresbody io.Reader = httpres.Body
 	defer httpres.Body.Close()
 
-	if httpres.ContentLength <= 0 && httpres.StatusCode < http.StatusOK && httpres.StatusCode >= http.StatusMultipleChoices {
+	if httpres.ContentLength <= 0 && (httpres.StatusCode < http.StatusOK || httpres.StatusCode >= http.StatusMultipleChoices) {
 		cimError := httpres.Header.Get("CIMError")
 		errorDetail := httpres.Header.Get("PGErrorDetail")
 		if "" == cimError {
