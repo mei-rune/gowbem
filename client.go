@@ -179,6 +179,8 @@ func (c *Client) RoundTrip(action string, headers map[string]string, reqBody int
 	defer httpres.Body.Close()
 
 	if httpres.ContentLength <= 0 && (httpres.StatusCode < http.StatusOK || httpres.StatusCode >= http.StatusMultipleChoices) {
+		// 修复 pg 导到一个问题， 当pg出错时返回错误响应时，没有 ContentLength， tcp 连接也不关闭。
+		// 这时读 httpres.Body 时会导致本方法挂起。
 		cimError := httpres.Header.Get("CIMError")
 		errorDetail := httpres.Header.Get("PGErrorDetail")
 		if "" == cimError {
