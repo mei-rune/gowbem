@@ -453,8 +453,8 @@ func (c *ClientCIMXML) EnumerateInstances(namespaceName, className string, deepI
 	}
 
 	results := make([]CIMInstanceWithName, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueNamedInstances))
-	for idx, instance := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueNamedInstances {
-		results[idx] = &instance
+	for idx, _ := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueNamedInstances {
+		results[idx] = &resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueNamedInstances[idx]
 	}
 	return results, nil
 }
@@ -906,8 +906,8 @@ func (c *ClientCIMXML) AssociatorInstances(namespaceName string, instanceName CI
 	}
 
 	results := make([]CIMInstance, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances))
-	for idx, instance := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances {
-		results[idx] = &instance
+	for idx, _ := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances {
+		results[idx] = &resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances[idx]
 	}
 	return results, nil
 }
@@ -1260,8 +1260,8 @@ func (c *ClientCIMXML) ReferenceInstances(namespaceName string, instanceName CIM
 	}
 
 	results := make([]CIMInstance, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances))
-	for idx, instance := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances {
-		results[idx] = &instance
+	for idx, _ := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances {
+		results[idx] = &resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances[idx]
 	}
 	return results, nil
 }
