@@ -407,6 +407,117 @@ func TestMultiReq(t *testing.T) {
 	}
 }
 
+var simple_rsp1 = CimSimpleRsp{
+	IMethodResponse: &CimIMethodResponse{
+		Name:        "abc",
+		ParamValues: paramValues,
+		ReturnValue: &CimIReturnValue{
+			ClassNames: []CimClassName{CimClassName{Name: "abc"}},
+		},
+	},
+}
+
+var simple_error_rsp = CimSimpleRsp{
+	IMethodResponse: &CimIMethodResponse{
+		Name: "err_rsp",
+		//ParamValues: paramValues,
+		Error: &CimError{Code: 123, Description: "test message"},
+	},
+}
+
+func TestSimpleRsp(t *testing.T) {
+	for _, rsp := range []CimSimpleRsp{simple_rsp1, simple_error_rsp} {
+		bs, e := xml.MarshalIndent(rsp, "", "  ")
+		if nil != e {
+			t.Error(e)
+			return
+		} else {
+			t.Log(string(bs))
+		}
+
+		var unmarshal_rsp CimSimpleRsp
+		if e := xml.Unmarshal(bs, &unmarshal_rsp); nil != e {
+			t.Error(e)
+			return
+		}
+
+		if !reflect.DeepEqual(rsp, unmarshal_rsp) {
+
+			bs2, e := xml.MarshalIndent(unmarshal_rsp, "", "  ")
+			if nil != e {
+				t.Error(e)
+				return
+			} else {
+
+				if string(bs) != string(bs2) {
+					t.Errorf("excepted is %#v", rsp)
+					t.Errorf("actual is %#v", unmarshal_rsp)
+					//t.Log(string(bs))
+
+					results := difflib.Diff(strings.Split(string(bs), "\n"), strings.Split(string(bs2), "\n"))
+					if 0 != len(results) {
+						for _, rec := range results {
+							t.Error(rec.String())
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+func TestCimError(t *testing.T) {
+	err_txt := `<CIM CIMVERSION="2.0" DTDVERSION="2.0">
+<MESSAGE ID="1-563c39eab1c2802414000002" PROTOCOLVERSION="1.0">
+<SIMPLERSP>
+<IMETHODRESPONSE NAME="Associators">
+<ERROR CODE="100" DESCRIPTION="Unrecognized CIM status code &quot;100&quot;: Cannot connect to local CIM server. Connection failed."/></IMETHODRESPONSE>
+</SIMPLERSP>
+</MESSAGE>
+</CIM>`
+
+	var unmarshal_rsp = CIM{hasFault: func(cim *CIM) error {
+		if nil == cim.Message {
+			return messageNotExists
+		}
+		if nil == cim.Message.SimpleRsp {
+			return simpleReqNotExists
+		}
+		if nil == cim.Message.SimpleRsp.IMethodResponse {
+			return imethodResponseNotExists
+		}
+
+		if nil != cim.Message.SimpleRsp.IMethodResponse.Error {
+			e := cim.Message.SimpleRsp.IMethodResponse.Error
+			return WBEMException(CIMStatusCode(e.Code), e.Description)
+		}
+
+		if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue {
+			return ireturnValueNotExists
+		}
+		// if 0 == len(cim.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances) {
+		// 	return classesNotExists
+		// }
+		return nil
+	}}
+
+	if e := xml.Unmarshal([]byte(err_txt), &unmarshal_rsp); nil != e {
+		t.Error(e)
+		return
+	}
+
+	//fmt.Println(unmarshal_rsp.Fault())
+	//if unmarshal_rsp.Fault() {
+	//}
+
+	if 100 != unmarshal_rsp.Message.SimpleRsp.IMethodResponse.Error.Code {
+		t.Error("code is error")
+		return
+	}
+
+	t.Log(unmarshal_rsp.Message.SimpleRsp.IMethodResponse.Error.Description)
+}
+
 var class = &CimClass{
 	Name:       "a.b.c.class_test_p7",
 	SuperClass: "a.b.c.class_test_p7_base",

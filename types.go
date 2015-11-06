@@ -2064,7 +2064,7 @@ type CimMethodResponse struct {
 	Name        string          `xml:"NAME,attr"`
 	Error       *CimError       `xml:"ERROR,omitempty"`
 	ReturnValue *CimReturnValue `xml:"RETURNVALUE,omitempty"`
-	ParamValue  []CimParamValue `xml:"PARAMVALUE,omitempty"`
+	ParamValues []CimParamValue `xml:"PARAMVALUE,omitempty"`
 }
 
 //     <xs:element name="IMETHODRESPONSE">
@@ -2088,7 +2088,7 @@ type CimIMethodResponse struct {
 	Name        string           `xml:"NAME,attr"`
 	Error       *CimError        `xml:"ERROR,omitempty"`
 	ReturnValue *CimIReturnValue `xml:"IRETURNVALUE,omitempty"`
-	ParamValue  []CimParamValue  `xml:"PARAMVALUE,omitempty"`
+	ParamValues []CimParamValue  `xml:"PARAMVALUE,omitempty"`
 }
 
 //     <xs:element name="ERROR">

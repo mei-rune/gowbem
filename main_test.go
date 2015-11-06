@@ -2,8 +2,11 @@ package gowbem
 
 import (
 	"flag"
+	"fmt"
+	"net/http"
 	_ "net/http/pprof"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -14,7 +17,7 @@ var (
 	path   = flag.String("path", "/cimom", "")
 
 	username     = flag.String("username", "root", "")
-	userpassword = flag.String("password", "root", "")
+	userpassword = flag.String("password", "", "")
 )
 
 func getTestUri() *url.URL {
@@ -27,6 +30,9 @@ func getTestUri() *url.URL {
 }
 
 func TestEnumerateClassNames(t *testing.T) {
+	if "" == *userpassword {
+		t.Skip("please input password.")
+	}
 	c, e := NewClientCIMXML(getTestUri(), false)
 	if nil != e {
 		t.Error(e)
@@ -64,6 +70,9 @@ func TestEnumerateClassNames(t *testing.T) {
 }
 
 func TestEnumerateInstanceNames(t *testing.T) {
+	if "" == *userpassword {
+		t.Skip("please input password.")
+	}
 	// go func() {
 	// 	http.ListenAndServe(":", nil)
 	// }()
@@ -123,6 +132,9 @@ func TestEnumerateInstanceNames(t *testing.T) {
 }
 
 func TestEnumerateInstances(t *testing.T) {
+	if "" == *userpassword {
+		t.Skip("please input password.")
+	}
 	// go func() {
 	// 	http.ListenAndServe(":", nil)
 	// }()
@@ -152,6 +164,9 @@ func TestEnumerateInstances(t *testing.T) {
 }
 
 func TestGetClass(t *testing.T) {
+	if "" == *userpassword {
+		t.Skip("please input password.")
+	}
 	// go func() {
 	// 	http.ListenAndServe(":", nil)
 	// }()
@@ -175,6 +190,9 @@ func TestGetClass(t *testing.T) {
 }
 
 func TestEnumerateClasses(t *testing.T) {
+	if "" == *userpassword {
+		t.Skip("please input password.")
+	}
 	// go func() {
 	//  http.ListenAndServe(":", nil)
 	// }()
@@ -197,6 +215,102 @@ func TestEnumerateClasses(t *testing.T) {
 	t.Log(classes)
 }
 
+func TestAssociatorInstances(t *testing.T) {
+	t.Skip("timeout.")
+
+	if "" == *userpassword {
+		t.Skip("please input password.")
+	}
+	go func() {
+		http.ListenAndServe(":", nil)
+	}()
+
+	c, e := NewClientCIMXML(getTestUri(), false)
+	if nil != e {
+		t.Error(e)
+		return
+	}
+
+	names, e := c.EnumerateClassNames("root/cimv2", "", true)
+	if nil != e {
+		t.Error(e)
+		return
+	}
+	if 0 == len(names) {
+		t.Error("class list is emtpy")
+		return
+	}
+	fmt.Println(len(names))
+	for idx, name := range names {
+		if "Linux_SysfsAttribute" == name {
+			continue
+		}
+		fmt.Println(idx, "========", name)
+		instances, e := c.EnumerateInstanceNames("root/cimv2", name) //, false, false, false, false, nil)
+		if nil != e {
+			//t.Error(e)
+			//return
+			continue
+		}
+		if 0 == len(instances) {
+			//t.Error("instance list is emtpy")
+			continue
+		}
+
+		for _, instance := range instances {
+
+			if strings.Contains(instance.String(), "Linux_SysfsAttribute") {
+				continue
+			}
+
+			if strings.Contains(instance.String(), "Linux_SysfsBusDevice") {
+				continue
+			}
+
+			if strings.Contains(instance.String(), "Linux_UnixProcess") {
+				continue
+			}
+
+			if strings.Contains(instance.String(), "PG_UnixProcess") {
+				continue
+			}
+
+			fmt.Println(instance)
+
+			if 0 == len(instances) {
+				//t.Error("instance list is emtpy")
+				continue
+			}
+
+			for _, instance := range instances {
+				fmt.Println("==========", instance)
+				//instanceName := instance
+				//instanceName.GetKeyBindings().Get(0).GetValue()
+				instanceWithNames, e := c.AssociatorInstances("root/cimv2", instance, "", "", "", "", false, nil)
+				if nil != e {
+					//t.Error(e)
+					fmt.Println(e)
+					continue
+				}
+				if 0 == len(instanceWithNames) {
+					//t.Error("instance list is emtpy")
+					continue
+				}
+
+				for _, instance := range instanceWithNames {
+					//t.Log(instance.GetName())
+					for i := 0; i < instance.GetPropertyCount(); i++ {
+						pr := instance.GetPropertyByIndex(i)
+						t.Log(pr.GetName(), "=", pr.GetValue())
+					}
+				}
+
+			}
+		}
+	}
+
+}
+
 // func TestAssociatorClasses(t *testing.T) {
 // 	c, e := NewClientCIMXML(getTestUri(), false)
 // 	if nil != e {
@@ -204,37 +318,37 @@ func TestEnumerateClasses(t *testing.T) {
 // 		return
 // 	}
 
-// 	classes, e := c.EnumerateClasses("root/cimv2", "", true, true, true, true)
+// 	// classes, e := c.EnumerateClasses("root/cimv2", "Linux_UnixProcess", true, true, true, true)
+// 	// if nil != e {
+// 	// 	t.Error(e)
+// 	// 	return
+// 	// }
+// 	// has_ok := false
+// 	// for _, cls := range classes {
+// 	// var clsInstance CimClassInnerXml
+// 	// if e := xml.Unmarshal([]byte(cls), &clsInstance); nil != e {
+// 	// 	t.Log(e)
+// 	// 	continue
+// 	// }
+
+// 	fmt.Println(clsInstance.Name)
+// 	assoc_classes, e := c.AssociatorClasses("root/cimv2", "Linux_UnixProcess", "", "", "", "", true, true, nil)
 // 	if nil != e {
-// 		t.Error(e)
+// 		t.Log(e)
 // 		return
 // 	}
-// 	has_ok := false
-// 	for _, cls := range classes {
-// 		var clsInstance CimClassInnerXml
-// 		if e := xml.Unmarshal([]byte(cls), &clsInstance); nil != e {
-// 			t.Log(e)
-// 			continue
-// 		}
-
-// 		fmt.Println(clsInstance.Name)
-// 		assoc_classes, e := c.AssociatorClasses("root/cimv2", clsInstance.Name, "", "", "", "", true, true, nil)
-// 		if nil != e {
-// 			t.Log(e)
-// 			continue
-// 		}
-// 		if 0 == len(assoc_classes) {
-// 			t.Log("classes is emtpy")
-// 			continue
-// 		}
-
-// 		has_ok = true
-// 		t.Log(assoc_classes)
-// 		fmt.Println(assoc_classes)
+// 	if 0 == len(assoc_classes) {
+// 		t.Log("classes is emtpy")
+// 		return
 // 	}
-// 	if !has_ok {
-// 		t.Error("failed")
-// 	}
+//
+// 	//has_ok = true
+// 	t.Log(assoc_classes)
+// 	fmt.Println(assoc_classes)
+// 	//}
+// 	// if !has_ok {
+// 	// 	t.Error("failed")
+// 	// }
 // }
 
 // func TestReferenceClasses(t *testing.T) {

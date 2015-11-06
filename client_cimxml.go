@@ -777,9 +777,9 @@ func (c *ClientCIMXML) AssociatorNames(namespaceName string, instanceName CIMIns
 		return nil, err
 	}
 
-	results := make([]CIMInstanceName, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.InstanceNames))
-	for idx, name := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.InstanceNames {
-		results[idx] = name
+	results := make([]CIMInstanceName, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ObjectPaths))
+	for idx, _ := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ObjectPaths {
+		results[idx] = &resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ObjectPaths[idx].InstancePath.InstanceName
 	}
 	return results, nil
 }
@@ -905,9 +905,16 @@ func (c *ClientCIMXML) AssociatorInstances(namespaceName string, instanceName CI
 		return nil, err
 	}
 
-	results := make([]CIMInstance, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances))
-	for idx, _ := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances {
-		results[idx] = &resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances[idx]
+	results := make([]CIMInstance, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths))
+	if count := len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths); count > 0 {
+		for idx, _ := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths {
+			results[idx] = resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths[idx].Instance
+		}
+	}
+	if count := len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithLocalPaths); count > 0 {
+		for idx, _ := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithLocalPaths {
+			results = append(results, resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithLocalPaths[idx].Instance)
+		}
 	}
 	return results, nil
 }
@@ -1041,9 +1048,18 @@ func (c *ClientCIMXML) AssociatorClasses(namespaceName, className, assocClass, r
 	for idx, class := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Classes {
 		results[idx] = class.String()
 	}
-
 	for _, name := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ClassNames {
 		results = append(results, name.Name)
+	}
+	for _, objectWithPath := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths {
+		if nil != objectWithPath.Class {
+			results = append(results, objectWithPath.Class.Name)
+		}
+	}
+	for _, objectWithLocalPath := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithLocalPaths {
+		if nil != objectWithLocalPath.Class {
+			results = append(results, objectWithLocalPath.Class.Name)
+		}
 	}
 	return results, nil
 }
@@ -1127,7 +1143,7 @@ func (c *ClientCIMXML) ReferenceNames(namespaceName string, instanceName CIMInst
 		if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue {
 			return ireturnValueNotExists
 		}
-		// if 0 == len(cim.Message.SimpleRsp.IMethodResponse.ReturnValue.InstanceNames) {
+		// if 0 == len(cim.Message.SimpleRsp.IMethodResponse.ReturnValue.ObjectPaths) {
 		// 	return InstanceNamesNotExists
 		// }
 		return nil
@@ -1145,9 +1161,9 @@ func (c *ClientCIMXML) ReferenceNames(namespaceName string, instanceName CIMInst
 		return nil, err
 	}
 
-	results := make([]CIMInstanceName, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.InstanceNames))
-	for idx, name := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.InstanceNames {
-		results[idx] = name
+	results := make([]CIMInstanceName, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ObjectPaths))
+	for idx, _ := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ObjectPaths {
+		results[idx] = &resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ObjectPaths[idx].InstancePath.InstanceName
 	}
 	return results, nil
 }
@@ -1259,9 +1275,17 @@ func (c *ClientCIMXML) ReferenceInstances(namespaceName string, instanceName CIM
 		return nil, err
 	}
 
-	results := make([]CIMInstance, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances))
-	for idx, _ := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances {
-		results[idx] = &resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances[idx]
+	var results []CIMInstance
+	if count := len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths); count > 0 {
+		results = make([]CIMInstance, count)
+		for idx, _ := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths {
+			results[idx] = resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths[idx].Instance
+		}
+	} else if count = len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithLocalPaths); count > 0 {
+		results = make([]CIMInstance, count)
+		for idx, _ := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithLocalPaths {
+			results[idx] = resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithLocalPaths[idx].Instance
+		}
 	}
 	return results, nil
 }
@@ -1384,6 +1408,16 @@ func (c *ClientCIMXML) ReferenceClasses(namespaceName, className, resultClass, r
 	}
 	for _, name := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ClassNames {
 		results = append(results, name.Name)
+	}
+	for _, objectWithPath := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths {
+		if nil != objectWithPath.Class {
+			results = append(results, objectWithPath.Class.Name)
+		}
+	}
+	for _, objectWithLocalPath := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithLocalPaths {
+		if nil != objectWithLocalPath.Class {
+			results = append(results, objectWithLocalPath.Class.Name)
+		}
 	}
 	return results, nil
 }
