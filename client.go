@@ -1,3 +1,19 @@
+/*
+Copyright (c) 2015 VMware, Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+// this code is copy from https://github.com/vmware/govmomi/blob/master/vim25/soap/client.go
 package gowbem
 
 import (
@@ -12,12 +28,8 @@ import (
 	"net/http/cookiejar"
 	"net/http/httputil"
 	"net/url"
-	"os"
 	"strconv"
-	"strings"
 	"sync/atomic"
-
-	"github.com/vmware/govmomi/vim25/progress"
 )
 
 type HasFault interface {
@@ -151,7 +163,6 @@ func (c *Client) RoundTrip(action string, headers map[string]string, reqBody int
 			httpreq.Header.Set(k, v)
 		}
 	}
-	//httpreq.Header.Set(`SOAPAction`, `urn:vim25/5.5`)
 
 	if DebugEnabled() {
 		b, _ := httputil.DumpRequest(httpreq, false)
@@ -181,6 +192,8 @@ func (c *Client) RoundTrip(action string, headers map[string]string, reqBody int
 	if httpres.ContentLength <= 0 && (httpres.StatusCode < http.StatusOK || httpres.StatusCode >= http.StatusMultipleChoices) {
 		// 修复 pg 导到一个问题， 当pg出错时返回错误响应时，没有 ContentLength， tcp 连接也不关闭。
 		// 这时读 httpres.Body 时会导致本方法挂起。
+		// This is Pegasus bug, pegasus will return a error response that http version is 1.0 and ContentLength is missing.
+		// And tcp connection isn't disconnect by the pegasus server.
 		cimError := httpres.Header.Get("CIMError")
 		errorDetail := httpres.Header.Get("PGErrorDetail")
 		if "" == cimError {
@@ -222,167 +235,6 @@ func (c *Client) RoundTrip(action string, headers map[string]string, reqBody int
 
 	if fault := resBody.Fault(); fault != nil {
 		return &FaultError{bytes: c.cached.Bytes(), err: fault}
-	}
-
-	return nil
-}
-
-// ParseURL wraps url.Parse to rewrite the URL.Host field
-// In the case of VM guest uploads or NFC lease URLs, a Host
-// field with a value of "*" is rewritten to the Client's URL.Host.
-func (c *Client) ParseURL(urlStr string) (*url.URL, error) {
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, err
-	}
-
-	host := strings.Split(u.Host, ":")
-	if host[0] == "*" {
-		// Also use Client's port, to support port forwarding
-		u.Host = c.URL().Host
-	}
-
-	return u, nil
-}
-
-type Upload struct {
-	Type          string
-	Method        string
-	ContentLength int64
-	Progress      progress.Sinker
-}
-
-var DefaultUpload = Upload{
-	Type:   "application/octet-stream",
-	Method: "PUT",
-}
-
-// Upload PUTs the local file to the given URL
-func (c *Client) Upload(f io.Reader, u *url.URL, param *Upload) error {
-	var err error
-
-	if param.Progress != nil {
-		pr := progress.NewReader(param.Progress, f, param.ContentLength)
-		f = pr
-
-		// Mark progress reader as done when returning from this function.
-		defer func() {
-			pr.Done(err)
-		}()
-	}
-
-	req, err := http.NewRequest(param.Method, u.String(), f)
-	if err != nil {
-		return err
-	}
-
-	req.ContentLength = param.ContentLength
-	req.Header.Set("Content-Type", param.Type)
-
-	res, err := c.Client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	switch res.StatusCode {
-	case http.StatusOK:
-	case http.StatusCreated:
-	default:
-		err = errors.New(res.Status)
-	}
-
-	return err
-}
-
-// UploadFile PUTs the local file to the given URL
-func (c *Client) UploadFile(file string, u *url.URL, param *Upload) error {
-	if param == nil {
-		p := DefaultUpload // Copy since we set ContentLength
-		param = &p
-	}
-
-	s, err := os.Stat(file)
-	if err != nil {
-		return err
-	}
-
-	f, err := os.Open(file)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	param.ContentLength = s.Size()
-
-	return c.Upload(f, u, param)
-}
-
-type Download struct {
-	Method   string
-	Progress progress.Sinker
-}
-
-var DefaultDownload = Download{
-	Method: "GET",
-}
-
-// DownloadFile GETs the given URL to a local file
-func (c *Client) DownloadFile(file string, u *url.URL, param *Download) error {
-	var err error
-
-	if param == nil {
-		param = &DefaultDownload
-	}
-
-	fh, err := os.Create(file)
-	if err != nil {
-		return err
-	}
-	defer fh.Close()
-
-	req, err := http.NewRequest(param.Method, u.String(), nil)
-	if err != nil {
-		return err
-	}
-
-	res, err := c.Client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	defer res.Body.Close()
-
-	switch res.StatusCode {
-	case http.StatusOK:
-	default:
-		err = errors.New(res.Status)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	var r io.Reader = res.Body
-	if param.Progress != nil {
-		pr := progress.NewReader(param.Progress, res.Body, res.ContentLength)
-		r = pr
-
-		// Mark progress reader as done when returning from this function.
-		defer func() {
-			pr.Done(err)
-		}()
-	}
-
-	_, err = io.Copy(fh, r)
-	if err != nil {
-		return err
-	}
-
-	// Assign error before returning so that it gets picked up by the deferred
-	// function marking the progress reader as done.
-	err = fh.Close()
-	if err != nil {
-		return err
 	}
 
 	return nil
