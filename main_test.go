@@ -163,6 +163,58 @@ func TestEnumerateInstances(t *testing.T) {
 	}
 }
 
+func TestEnumerateInstances2(t *testing.T) {
+	if "" == *userpassword {
+		t.Skip("please input password.")
+	}
+	// go func() {
+	// 	http.ListenAndServe(":", nil)
+	// }()
+
+	c, e := NewClientCIMXML(getTestUri(), false)
+	if nil != e {
+		t.Error(e)
+		return
+	}
+	instances, e := c.EnumerateInstances("root/cimv2", "CIM_Processor", false, false, false, false, nil)
+	if nil != e {
+		t.Error(e)
+		return
+	}
+	if 0 == len(instances) {
+		t.Error("instance list is emtpy")
+		return
+	}
+
+	for _, instance := range instances {
+		t.Log(instance.GetName())
+		for i := 0; i < instance.GetInstance().GetPropertyCount(); i++ {
+			pr := instance.GetInstance().GetPropertyByIndex(i)
+			t.Log(pr.GetName(), "=", pr.GetValue())
+		}
+
+		//instanceName := instance
+		//instanceName.GetKeyBindings().Get(0).GetValue()
+		instanceWithNames, e := c.AssociatorInstances("root/cimv2", instance.GetName(), "", "", "", "", false, nil)
+		if nil != e {
+			//t.Error(e)
+			fmt.Println(e)
+			continue
+		}
+		if 0 == len(instanceWithNames) {
+			continue
+		}
+
+		for _, instance := range instanceWithNames {
+			//t.Log(instance.GetName())
+			for i := 0; i < instance.GetPropertyCount(); i++ {
+				pr := instance.GetPropertyByIndex(i)
+				t.Log("\t", pr.GetName(), "=", pr.GetValue())
+			}
+		}
+	}
+}
+
 func TestGetClass(t *testing.T) {
 	if "" == *userpassword {
 		t.Skip("please input password.")
