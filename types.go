@@ -260,35 +260,37 @@ func (self *CimValue) String() string {
 // 	XMLName xml.Name         `xml:"VALUE.ARRAY"`
 // 	Values  []CimValueOrNull //`xml:,omitempty`
 // }
-type CimValueArray []CimValueOrNull
+type CimValueArray struct {
+	Values []string `xml:"VALUE,omitempty"`
+}
 
 func (self CimValueArray) GetValue() interface{} {
-	if nil == self {
+	if nil == self.Values {
 		return nil
 	}
-	results := make([]interface{}, len(self))
-	for idx, v := range self {
-		results[idx] = v.GetValue()
+	results := make([]interface{}, len(self.Values))
+	for idx, v := range self.Values {
+		results[idx] = v
 	}
 	return results
 }
 
 func (self CimValueArray) IsNil() bool {
-	return nil == self
+	return nil == self.Values
 }
 
 func (self CimValueArray) ToString(buf *bytes.Buffer) {
-	if nil == self {
+	if nil == self.Values {
 		buf.WriteString(NULLSTRING)
-	} else if 0 == len(self) {
+	} else if 0 == len(self.Values) {
 		buf.WriteString("[]")
 	} else {
 		buf.WriteString("[")
-		for idx, v := range self {
+		for idx, v := range self.Values {
 			if idx != 0 {
 				buf.WriteString(",")
 			}
-			v.ToString(buf)
+			buf.WriteString(v)
 		}
 		buf.WriteString("]")
 	}
@@ -1547,7 +1549,7 @@ func (self *CimPropertyArray) GetType() CIMType {
 }
 
 func (self *CimPropertyArray) GetValue() interface{} {
-	if nil == self.ValueArray {
+	if nil == self.ValueArray.Values {
 		return nil
 	}
 	// results := make([]interface{}, len(self.ValueArray))
