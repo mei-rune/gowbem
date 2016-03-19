@@ -256,35 +256,34 @@ func (self *CimValue) String() string {
 //             </xs:choice>
 //         </xs:complexType>
 //     </xs:element>
-// type CimValueArray struct {
-// 	XMLName xml.Name         `xml:"VALUE.ARRAY"`
-// 	Values  []CimValueOrNull //`xml:,omitempty`
-// }
-type CimValueArray []CimValueOrNull
+type CimValueArray struct {
+	XMLName xml.Name         `xml:"VALUE.ARRAY"`
+	Values  []CimValueOrNull `xml:",any,omitempty"`
+}
 
-func (self CimValueArray) GetValue() interface{} {
-	if nil == self {
+func (self *CimValueArray) GetValue() interface{} {
+	if nil == self || nil == self.Values {
 		return nil
 	}
-	results := make([]interface{}, len(self))
-	for idx, v := range self {
+	results := make([]interface{}, len(self.Values))
+	for idx, v := range self.Values {
 		results[idx] = v.GetValue()
 	}
 	return results
 }
 
-func (self CimValueArray) IsNil() bool {
-	return nil == self
+func (self *CimValueArray) IsNil() bool {
+	return nil == self || nil == self.Values
 }
 
-func (self CimValueArray) ToString(buf *bytes.Buffer) {
-	if nil == self {
+func (self *CimValueArray) ToString(buf *bytes.Buffer) {
+	if nil == self || nil == self.Values {
 		buf.WriteString(NULLSTRING)
-	} else if 0 == len(self) {
+	} else if 0 == len(self.Values) {
 		buf.WriteString("[]")
 	} else {
 		buf.WriteString("[")
-		for idx, v := range self {
+		for idx, v := range self.Values {
 			if idx != 0 {
 				buf.WriteString(",")
 			}
@@ -316,6 +315,30 @@ func (self *CimValueOrNull) GetValue() interface{} {
 
 func (self *CimValueOrNull) IsNil() bool {
 	return nil == self.Value
+}
+
+func (self *CimValueOrNull) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if nil != self.Value {
+		return e.Encode(self.Value)
+	}
+
+	if nil != self.Null {
+		return e.Encode(self.Null)
+	}
+
+	return nil
+}
+
+func (self *CimValueOrNull) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	if "VALUE" == start.Name.Local {
+		self.Value = &CimValue{}
+		return d.DecodeElement(self.Value, &start)
+	}
+	if "VALUE.NULL" == start.Name.Local {
+		self.Null = &CimValueNull{}
+		return d.DecodeElement(self.Null, &start)
+	}
+	return nil
 }
 
 func (self *CimValueOrNull) ToString(buf *bytes.Buffer) {
@@ -407,35 +430,34 @@ func (self *CimValueReference) String() string {
 //             </xs:choice>
 //         </xs:complexType>
 //     </xs:element>
-// type CimValueRefArray struct {
-// 	XMLName xml.Name                  `xml:"VALUE.REFARRAY"`
-// 	Values  []CimValueReferenceOrNull //`xml:,omitempty`
-// }
-type CimValueRefArray []CimValueReferenceOrNull
+type CimValueRefArray struct {
+	XMLName xml.Name                  `xml:"VALUE.REFARRAY"`
+	Values  []CimValueReferenceOrNull `xml:",any,omitempty"`
+}
 
-func (self CimValueRefArray) GetValue() interface{} {
-	if nil == self {
+func (self *CimValueRefArray) GetValue() interface{} {
+	if nil == self || nil == self.Values {
 		return nil
 	}
-	results := make([]interface{}, len(self))
-	for idx, v := range self {
+	results := make([]interface{}, len(self.Values))
+	for idx, v := range self.Values {
 		results[idx] = v.GetValue()
 	}
 	return results
 }
 
-func (self CimValueRefArray) IsNil() bool {
-	return nil == self
+func (self *CimValueRefArray) IsNil() bool {
+	return nil == self || nil == self.Values
 }
 
-func (self CimValueRefArray) ToString(buf *bytes.Buffer) {
-	if nil == self {
+func (self *CimValueRefArray) ToString(buf *bytes.Buffer) {
+	if nil == self || nil == self.Values {
 		buf.WriteString(NULLSTRING)
-	} else if 0 == len(self) {
+	} else if 0 == len(self.Values) {
 		buf.WriteString("[]")
 	} else {
 		buf.WriteString("[")
-		for idx, v := range self {
+		for idx, v := range self.Values {
 			if idx != 0 {
 				buf.WriteString(",")
 			}
@@ -466,6 +488,30 @@ func (self *CimValueReferenceOrNull) GetValue() interface{} {
 
 func (self *CimValueReferenceOrNull) IsNil() bool {
 	return nil == self.Value
+}
+
+func (self *CimValueReferenceOrNull) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if nil != self.Value {
+		return e.Encode(self.Value)
+	}
+
+	if nil != self.Null {
+		return e.Encode(self.Null)
+	}
+
+	return nil
+}
+
+func (self *CimValueReferenceOrNull) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	if "VALUE.REFERENCE" == start.Name.Local {
+		self.Value = &CimValueReference{}
+		return d.DecodeElement(self.Value, &start)
+	}
+	if "VALUE.NULL" == start.Name.Local {
+		self.Null = &CimValueNull{}
+		return d.DecodeElement(self.Null, &start)
+	}
+	return nil
 }
 
 func (self *CimValueReferenceOrNull) ToString(buf *bytes.Buffer) {
@@ -1406,13 +1452,13 @@ func (self *CimInstance) GetPropertyCount() int {
 type CimQualifier struct {
 	CimQualifierFlavor
 
-	XMLName    xml.Name      `xml:"QUALIFIER"`
-	Name       string        `xml:"NAME,attr"`
-	Type       string        `xml:"TYPE,attr"`
-	Propagated bool          `xml:"PROPAGATED,attr,omitempty"`
-	Lang       string        `xml:"xml lang,attr,omitempty"`
-	Value      *CimValue     `xml:"VALUE,omitempty"`
-	ValueArray CimValueArray `xml:"VALUE.ARRAY,omitempty"`
+	XMLName    xml.Name       `xml:"QUALIFIER"`
+	Name       string         `xml:"NAME,attr"`
+	Type       string         `xml:"TYPE,attr"`
+	Propagated bool           `xml:"PROPAGATED,attr,omitempty"`
+	Lang       string         `xml:"xml lang,attr,omitempty"`
+	Value      *CimValue      `xml:"VALUE,omitempty"`
+	ValueArray *CimValueArray `xml:"VALUE.ARRAY,omitempty"`
 }
 
 //     <xs:attributeGroup name="QualifierFlavor">
@@ -1535,7 +1581,7 @@ type CimPropertyArray struct {
 	EmbeddedObject string         `xml:"EmbeddedObject,attr,omitempty"`
 	Lang           string         `xml:"xml lang,attr,omitempty"`
 	Qualifiers     []CimQualifier `xml:"QUALIFIER,omitempty"`
-	ValueArray     CimValueArray  `xml:"VALUE.ARRAY,omitempty"`
+	ValueArray     *CimValueArray `xml:"VALUE.ARRAY,omitempty"`
 }
 
 func (self *CimPropertyArray) GetName() string {
@@ -1946,8 +1992,8 @@ type CimParamValue struct {
 	EmbeddedObject     string                 `xml:"EmbeddedObject,attr,omitempty"`
 	Value              *CimValue              `xml:"VALUE,omitempty"`
 	ValueReference     *CimValueReference     `xml:"VALUE.REFERENCE,omitempty"`
-	ValueArray         CimValueArray          `xml:"VALUE.ARRAY,omitempty"`
-	ValueRefArray      CimValueRefArray       `xml:"VALUE.REFARRAY,omitempty"`
+	ValueArray         *CimValueArray         `xml:"VALUE.ARRAY,omitempty"`
+	ValueRefArray      *CimValueRefArray      `xml:"VALUE.REFARRAY,omitempty"`
 	ClassName          *CimClassName          `xml:"CLASSNAME,omitempty"`
 	InstanceName       *CimInstanceName       `xml:"INSTANCENAME,omitempty"`
 	Class              *CimClass              `xml:"CLASS,omitempty"`
@@ -2000,7 +2046,7 @@ type CimIParamValue struct {
 	Name                 string                   `xml:"NAME,attr"`
 	Value                *CimValue                `xml:"VALUE,omitempty"`
 	ValueReference       *CimValueReference       `xml:"VALUE.REFERENCE,omitempty"`
-	ValueArray           CimValueArray            `xml:"VALUE.ARRAY,omitempty"`
+	ValueArray           *CimValueArray           `xml:"VALUE.ARRAY,omitempty"`
 	ClassName            *CimClassName            `xml:"CLASSNAME,omitempty"`
 	InstanceName         *CimInstanceName         `xml:"INSTANCENAME,omitempty"`
 	QualifierDeclaration *CimQualifierDeclaration `xml:""QUALIFIER.DECLARATION,omitempty"`
@@ -2168,7 +2214,7 @@ type CimIReturnValue struct {
 	ValueObjects              []CimValueObject              `xml:"VALUE.OBJECT,omitempty"`
 	ObjectPaths               []CimObjectPath               `xml:"OBJECTPATH,omitempty"`
 	QualifierDeclarations     []CimQualifierDeclaration     `xml:"QUALIFIER.DECLARATION,omitempty"`
-	ValueArray                CimValueArray                 `xml:"VALUE.ARRAY,omitempty"`
+	ValueArray                *CimValueArray                `xml:"VALUE.ARRAY,omitempty"`
 	ValueReference            *CimValueReference            `xml:"VALUE.REFERENCE,omitempty"`
 	Classes                   []CimClassInnerXml            `xml:"CLASS,omitempty"`
 	//Classes                   []CimClass            `xml:"CLASS,omitempty"`

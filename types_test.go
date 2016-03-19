@@ -1,7 +1,10 @@
 package gowbem
 
 import (
+	"encoding/json"
 	"encoding/xml"
+	"fmt"
+	"io"
 	"reflect"
 	"strings"
 	"testing"
@@ -12,9 +15,11 @@ import (
 func makeLocalNamespace(ss []string) *CimLocalNamespacePath {
 	names := make([]CimNamespace, 0, len(ss))
 	for _, s := range ss {
-		names = append(names, CimNamespace{Name: s})
+		names = append(names, CimNamespace{XMLName: xml.Name{Space: "", Local: "NAMESPACE"}, Name: s})
 	}
-	return &CimLocalNamespacePath{Namespaces: names}
+	return &CimLocalNamespacePath{
+		XMLName:    xml.Name{Space: "", Local: "LOCALNAMESPACEPATH"},
+		Namespaces: names}
 }
 
 func makeLocalClass(ss []string, cls string) *CimLocalClassPath {
@@ -24,13 +29,16 @@ func makeLocalClass(ss []string, cls string) *CimLocalClassPath {
 
 func makeNamespace(host string, ss []string) *CimNamespacePath {
 	return &CimNamespacePath{
-		Host:               CimHost{Value: host},
+		XMLName:            xml.Name{Space: "", Local: "NAMESPACEPATH"},
+		Host:               CimHost{XMLName: xml.Name{Space: "", Local: "HOST"}, Value: host},
 		LocalNamespacePath: *makeLocalNamespace(ss),
 	}
 }
 func makeClass(host string, ss []string, cls string) *CimClassPath {
-	return &CimClassPath{NamespacePath: *makeNamespace(host, ss),
-		ClassName: CimClassName{Name: cls}}
+	return &CimClassPath{
+		XMLName:       xml.Name{Space: "", Local: "CLASSPATH"},
+		NamespacePath: *makeNamespace(host, ss),
+		ClassName:     CimClassName{XMLName: xml.Name{Space: "", Local: "CLASSNAME"}, Name: cls}}
 }
 
 func makeInstanceNameWithKV1(cls, k, v, vt string) *CimInstanceName {
@@ -71,11 +79,11 @@ func makeQualifier(factor string) CimQualifier {
 	}
 }
 
-func makeValueArray(values ...CimValueOrNull) CimValueArray {
-	return CimValueArray(values)
+func makeValueArray(values ...CimValueOrNull) *CimValueArray {
+	return &CimValueArray{Values: values}
 }
-func makeValueRefArray(values ...CimValueReferenceOrNull) CimValueRefArray {
-	return CimValueRefArray(values)
+func makeValueRefArray(values ...CimValueReferenceOrNull) *CimValueRefArray {
+	return &CimValueRefArray{XMLName: xml.Name{Space: "", Local: "VALUE.REFARRAY"}, Values: values}
 }
 
 func makeProperty(factor string) *CimAnyProperty {
@@ -542,6 +550,7 @@ var class = &CimClass{
 			Lang:           "cn",
 			ValueArray: makeValueArray(
 				CimValueOrNull{Value: &CimValue{Value: "vvvvv"}},
+				CimValueOrNull{Value: &CimValue{Value: "v222"}},
 			),
 		}},
 		CimAnyProperty{PropertyReference: &CimPropertyReference{
@@ -597,6 +606,148 @@ func TestCimClass(t *testing.T) {
 					for _, rec := range results {
 						t.Error(rec.String())
 					}
+				}
+			}
+		}
+	}
+}
+
+func TestCimValueArray(t *testing.T) {
+	pr := CimAnyProperty{PropertyArray: &CimPropertyArray{
+		XMLName:        xml.Name{Space: "", Local: "PROPERTY.ARRAY"},
+		Name:           "pr_p7_1_abc_2",
+		Type:           "string",
+		ArraySize:      23,
+		ClassOrigin:    "pr_p7_1_abc_2_origin",
+		Propagated:     true,
+		EmbeddedObject: "object",
+		Lang:           "cn",
+		ValueArray: &CimValueArray{
+			XMLName: xml.Name{Space: "", Local: "VALUE.ARRAY"},
+			Values: []CimValueOrNull{
+				CimValueOrNull{Value: &CimValue{XMLName: xml.Name{Space: "", Local: "VALUE"},
+					Value: "vvvvv"}},
+				CimValueOrNull{Value: &CimValue{XMLName: xml.Name{Space: "", Local: "VALUE"},
+					Value: "v222"}},
+			}},
+	}}
+
+	bs, e := xml.MarshalIndent(&pr, "", "  ")
+	if nil != e {
+		t.Error(e)
+		return
+	} else {
+		fmt.Println(string(bs))
+	}
+
+	text := `<PROPERTY.ARRAY NAME="pr_p7_1_abc_2" TYPE="string" ARRAYSIZE="23" CLASSORIGIN="pr_p7_1_abc_2_origin" PROPAGATED="true" EmbeddedObject="object" xmlns:_xml="xml" _xml:lang="cn">
+  <VALUE.ARRAY>
+    <VALUE>vvvvv</VALUE>
+    <VALUE>v222</VALUE>
+  </VALUE.ARRAY>
+</PROPERTY.ARRAY>`
+
+	var unmarshalPr CimAnyProperty
+
+	e = xml.Unmarshal([]byte(text), &unmarshalPr)
+	if nil != e && io.EOF != e {
+		t.Error(e)
+		return
+	}
+
+	if !reflect.DeepEqual(&pr, &unmarshalPr) {
+
+		t.Errorf("excepted is %#v", pr)
+		t.Errorf("actual is %#v", unmarshalPr)
+		if string(bs) != text {
+			results := difflib.Diff(strings.Split(string(bs), "\n"), strings.Split(text, "\n"))
+			if 0 != len(results) {
+				for _, rec := range results {
+					t.Error(rec.String())
+				}
+			}
+		}
+	}
+}
+
+func TestCimValueRefArray(t *testing.T) {
+	paramValue := CimParamValue{
+		XMLName:        xml.Name{Space: "", Local: "PARAMVALUE"},
+		Name:           "p4",
+		ParamType:      "string",
+		EmbeddedObject: "instance",
+		ValueRefArray: makeValueRefArray(
+			CimValueReferenceOrNull{Value: &CimValueReference{XMLName: xml.Name{Space: "", Local: "VALUE.REFERENCE"},
+				ClassPath: makeClass("127.9.2.1", []string{"a", "bc"}, "test_class1")}},
+			CimValueReferenceOrNull{Null: &CimValueNull{XMLName: xml.Name{Space: "", Local: "VALUE.NULL"}}},
+			CimValueReferenceOrNull{Value: &CimValueReference{
+				XMLName: xml.Name{Space: "", Local: "VALUE.REFERENCE"},
+				InstanceName: &CimInstanceName{
+					XMLName:   xml.Name{Space: "", Local: "INSTANCENAME"},
+					ClassName: "abc_test",
+					KeyBindings: []CimKeyBinding{
+						CimKeyBinding{
+							XMLName:  xml.Name{Space: "", Local: "KEYBINDING"},
+							Name:     "kb1",
+							KeyValue: &CimKeyValue{XMLName: xml.Name{Space: "", Local: "KEYVALUE"}, Type: "string", Value: "kb_value_34"},
+						},
+					},
+				},
+			},
+			}),
+	}
+
+	bs, e := xml.MarshalIndent(&paramValue, "", "  ")
+	if nil != e {
+		t.Error(e)
+		return
+	} else {
+		fmt.Println(string(bs))
+	}
+
+	text := `<PARAMVALUE NAME="p4" PARAMTYPE="string" EmbeddedObject="instance">
+  <VALUE.REFARRAY>
+    <VALUE.REFERENCE>
+      <CLASSPATH>
+        <NAMESPACEPATH>
+          <HOST>127.9.2.1</HOST>
+          <LOCALNAMESPACEPATH>
+            <NAMESPACE NAME="a"></NAMESPACE>
+            <NAMESPACE NAME="bc"></NAMESPACE>
+          </LOCALNAMESPACEPATH>
+        </NAMESPACEPATH>
+        <CLASSNAME NAME="test_class1"></CLASSNAME>
+      </CLASSPATH>
+    </VALUE.REFERENCE>
+    <VALUE.NULL></VALUE.NULL>
+    <VALUE.REFERENCE>
+      <INSTANCENAME CLASSNAME="abc_test">
+        <KEYBINDING NAME="kb1">
+          <KEYVALUE TYPE="string">kb_value_34</KEYVALUE>
+        </KEYBINDING>
+      </INSTANCENAME>
+    </VALUE.REFERENCE>
+  </VALUE.REFARRAY>
+</PARAMVALUE>`
+
+	var unmarshal CimParamValue
+
+	e = xml.Unmarshal([]byte(text), &unmarshal)
+	if nil != e && io.EOF != e {
+		t.Error(e)
+		return
+	}
+
+	if !reflect.DeepEqual(&paramValue, &unmarshal) {
+		paramValue_bytes, _ := json.Marshal(&paramValue)
+		unmarshal_bytes, _ := json.Marshal(&unmarshal)
+		t.Errorf("excepted is %#v", string(paramValue_bytes))
+		t.Errorf("actual is   %#v", string(unmarshal_bytes))
+		if string(bs) != text {
+			results := difflib.Diff(strings.Split(string(bs), "\n"), strings.Split(text, "\n"))
+			if 0 != len(results) {
+				for _, rec := range results {
+					t.Error(rec.String())
 				}
 			}
 		}
@@ -742,11 +893,11 @@ var declaration = CimDeclaration{
 							Method:      true,
 							Parameter:   true,
 							Indication:  true},
-						ValueArray: &CimValueArray{
+						ValueArray: makeValueArray(
 							CimValueOrNull{Value: &CimValue{Value: "abcvvvv1"}},
 							CimValueOrNull{Null: &CimValueNull{}},
 							CimValueOrNull{Value: &CimValue{Value: "abcvvvv3"}},
-						},
+						),
 					},
 				},
 				ValueObjects: []CimValueObject{
