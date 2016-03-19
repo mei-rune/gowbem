@@ -148,9 +148,37 @@ type CimDeclGroupWithName struct {
 //         </xs:complexType>
 //     </xs:element>
 type CimDeclGroupWithPath struct {
-	XMLName                   xml.Name                      `xml:"DECLGROUP.WITHPATH"`
-	ValueObjectWithPaths      []CimValueObjectWithPath      `xml:"VALUE.OBJECTWITHPATH,omitempty"`
-	ValueObjectWithLocalPaths []CimValueObjectWithLocalPath `xml:"VALUE.OBJECTWITHLOCALPATH,omitempty"`
+	XMLName xml.Name          `xml:"DECLGROUP.WITHPATH"`
+	Values  []CimAnyDeclGroup `xml:",any,omitempty"`
+}
+
+type CimAnyDeclGroupWithPath struct {
+	ValueObjectWithPaths      *CimValueObjectWithPath      `xml:"VALUE.OBJECTWITHPATH,omitempty"`
+	ValueObjectWithLocalPaths *CimValueObjectWithLocalPath `xml:"VALUE.OBJECTWITHLOCALPATH,omitempty"`
+}
+
+func (self *CimAnyDeclGroupWithPath) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if nil != self.ValueObjectWithPaths {
+		return e.Encode(self.ValueObjectWithPaths)
+	}
+	if nil != self.ValueObjectWithLocalPaths {
+		return e.Encode(self.ValueObjectWithLocalPaths)
+	}
+
+	return nil
+}
+
+func (self *CimAnyDeclGroupWithPath) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	if "VALUE.OBJECTWITHPATH" == start.Name.Local {
+		self.ValueObjectWithPaths = &CimValueObjectWithPath{}
+		return d.DecodeElement(self.ValueObjectWithPaths, &start)
+	}
+	if "VALUE.OBJECTWITHLOCALPATH" == start.Name.Local {
+		self.ValueObjectWithLocalPaths = &CimValueObjectWithLocalPath{}
+		return d.DecodeElement(self.ValueObjectWithLocalPaths, &start)
+	}
+
+	return nil
 }
 
 //     <xs:element name="QUALIFIER.DECLARATION">
