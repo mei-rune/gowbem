@@ -94,3 +94,13 @@ func (e *WbemError) Error() string {
 func WBEMException(code CIMStatusCode, msg string) error {
 	return &WbemError{code: code, msg: msg}
 }
+
+func IsErrNotSupported(e error) bool {
+	if we, ok := e.(*WbemError); ok {
+		return we.code == CIM_ERR_NOT_SUPPORTED
+	}
+	if fe, ok := e.(*FaultError); ok {
+		return IsErrNotSupported(fe.err)
+	}
+	return false
+}

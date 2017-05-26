@@ -18,6 +18,7 @@ package gowbem
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"encoding/xml"
@@ -133,7 +134,7 @@ func (c *Client) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (c *Client) RoundTrip(action string, headers map[string]string, reqBody interface{}, resBody HasFault) error {
+func (c *Client) RoundTrip(ctx context.Context, action string, headers map[string]string, reqBody interface{}, resBody HasFault) error {
 	var httpreq *http.Request
 	var httpres *http.Response
 	var dumpWriter io.WriteCloser
@@ -153,6 +154,10 @@ func (c *Client) RoundTrip(action string, headers map[string]string, reqBody int
 	if err != nil {
 		panic(err)
 	}
+	if ctx != nil {
+		httpreq = httpreq.WithContext(ctx)
+	}
+
 	//if pwd, ok := c.u.User.Password(); ok {
 	//	httpreq.SetBasicAuth(c.u.User.Username(), pwd)
 	//}
@@ -183,6 +188,12 @@ func (c *Client) RoundTrip(action string, headers map[string]string, reqBody int
 	// }
 
 	if err != nil {
+
+		if DebugEnabled() {
+			dumpWriter.Write([]byte("\r\n"))
+			dumpWriter.Write([]byte(err.Error()))
+		}
+
 		return err
 	}
 
@@ -190,6 +201,14 @@ func (c *Client) RoundTrip(action string, headers map[string]string, reqBody int
 	defer httpres.Body.Close()
 
 	if httpres.ContentLength <= 0 && (httpres.StatusCode < http.StatusOK || httpres.StatusCode >= http.StatusMultipleChoices) {
+
+		if DebugEnabled() {
+			b, _ := httputil.DumpResponse(httpres, false)
+			dumpWriter.Write([]byte("\r\n"))
+			dumpWriter.Write(b)
+			dumpWriter.Write(c.cached.Bytes())
+		}
+
 		// 修复 pg 导到一个问题， 当pg出错时返回错误响应时，没有 ContentLength， tcp 连接也不关闭。
 		// 这时读 httpres.Body 时会导致本方法挂起。
 		// This is Pegasus bug, pegasus will return a error response that http version is 1.0 and ContentLength is missing.
@@ -216,6 +235,7 @@ func (c *Client) RoundTrip(action string, headers map[string]string, reqBody int
 
 	if DebugEnabled() {
 		b, _ := httputil.DumpResponse(httpres, false)
+		dumpWriter.Write([]byte("\r\n"))
 		dumpWriter.Write(b)
 		dumpWriter.Write(c.cached.Bytes())
 	}

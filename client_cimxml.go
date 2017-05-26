@@ -1,6 +1,7 @@
 package gowbem
 
 import (
+	"context"
 	"errors"
 	"net/url"
 	"strings"
@@ -45,7 +46,7 @@ func (c *ClientCIMXML) init(u *url.URL, insecure bool) {
 	//fmt.Println(c.Client.u.User)
 }
 
-func (c *ClientCIMXML) EnumerateClassNames(namespaceName, className string, deep bool) ([]string, error) {
+func (c *ClientCIMXML) EnumerateClassNames(ctx context.Context, namespaceName, className string, deep bool) ([]string, error) {
 	// obtain data
 	if "" == namespaceName {
 		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
@@ -112,7 +113,7 @@ func (c *ClientCIMXML) EnumerateClassNames(namespaceName, className string, deep
 		return nil
 	}}
 
-	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
 		"CIMOperation": "MethodCall",
 		"CIMMethod":    "EnumerateClassNames",
 		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
@@ -126,7 +127,7 @@ func (c *ClientCIMXML) EnumerateClassNames(namespaceName, className string, deep
 	return results, nil
 }
 
-func (c *ClientCIMXML) EnumerateInstanceNames(namespaceName, className string) ([]CIMInstanceName, error) {
+func (c *ClientCIMXML) EnumerateInstanceNames(ctx context.Context, namespaceName, className string) ([]CIMInstanceName, error) {
 	if "" == namespaceName {
 		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
 			"namespace name is empty.")
@@ -195,7 +196,7 @@ func (c *ClientCIMXML) EnumerateInstanceNames(namespaceName, className string) (
 	// CIMMethod: EnumerateClassNames
 	// CIMObject: root%2Fcimv2
 
-	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
 		"CIMOperation": "MethodCall",
 		"CIMMethod":    "EnumerateInstanceNames",
 		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
@@ -209,7 +210,7 @@ func (c *ClientCIMXML) EnumerateInstanceNames(namespaceName, className string) (
 	return results, nil
 }
 
-func (c *ClientCIMXML) GetInstance(namespaceName, className string, keyBindings CIMKeyBindings, localOnly bool,
+func (c *ClientCIMXML) GetInstance(ctx context.Context, namespaceName, className string, keyBindings CIMKeyBindings, localOnly bool,
 	includeQualifiers bool, includeClassOrigin bool, propertyList []string) (CIMInstance, error) {
 	instanceName := &CimInstanceName{
 		ClassName: className,
@@ -229,10 +230,10 @@ func (c *ClientCIMXML) GetInstance(namespaceName, className string, keyBindings 
 	default:
 		instanceName.KeyBindings = keyBindings.(CimKeyBindings)
 	}
-	return c.GetInstanceByInstanceName(namespaceName, instanceName, localOnly, includeQualifiers, includeClassOrigin, propertyList)
+	return c.GetInstanceByInstanceName(ctx, namespaceName, instanceName, localOnly, includeQualifiers, includeClassOrigin, propertyList)
 }
 
-func (c *ClientCIMXML) GetInstanceByInstanceName(namespaceName string, instanceName CIMInstanceName, localOnly bool,
+func (c *ClientCIMXML) GetInstanceByInstanceName(ctx context.Context, namespaceName string, instanceName CIMInstanceName, localOnly bool,
 	includeQualifiers bool, includeClassOrigin bool, propertyList []string) (CIMInstance, error) {
 	if "" == namespaceName {
 		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
@@ -331,7 +332,7 @@ func (c *ClientCIMXML) GetInstanceByInstanceName(namespaceName string, instanceN
 	// CIMMethod: EnumerateClassNames
 	// CIMObject: root%2Fcimv2
 
-	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
 		"CIMOperation": "MethodCall",
 		"CIMMethod":    "GetInstance",
 		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
@@ -344,7 +345,7 @@ func (c *ClientCIMXML) GetInstanceByInstanceName(namespaceName string, instanceN
 	return &resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances[0], nil
 }
 
-func (c *ClientCIMXML) EnumerateInstances(namespaceName, className string, deepInheritance bool,
+func (c *ClientCIMXML) EnumerateInstances(ctx context.Context, namespaceName, className string, deepInheritance bool,
 	localOnly bool, includeQualifiers bool, includeClassOrigin bool, propertyList []string) ([]CIMInstanceWithName, error) {
 
 	if "" == namespaceName {
@@ -445,7 +446,7 @@ func (c *ClientCIMXML) EnumerateInstances(namespaceName, className string, deepI
 	// CIMMethod: EnumerateClassNames
 	// CIMObject: root%2Fcimv2
 
-	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
 		"CIMOperation": "MethodCall",
 		"CIMMethod":    "EnumerateInstances",
 		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
@@ -459,7 +460,7 @@ func (c *ClientCIMXML) EnumerateInstances(namespaceName, className string, deepI
 	return results, nil
 }
 
-func (c *ClientCIMXML) GetClass(namespaceName string, className string, localOnly bool,
+func (c *ClientCIMXML) GetClass(ctx context.Context, namespaceName string, className string, localOnly bool,
 	includeQualifiers bool, includeClassOrigin bool, propertyList []string) (string, error) {
 	if "" == namespaceName {
 		return "", WBEMException(CIM_ERR_INVALID_PARAMETER,
@@ -558,7 +559,7 @@ func (c *ClientCIMXML) GetClass(namespaceName string, className string, localOnl
 	// CIMMethod: EnumerateClassNames
 	// CIMObject: root%2Fcimv2
 
-	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
 		"CIMOperation": "MethodCall",
 		"CIMMethod":    "GetClass",
 		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
@@ -568,7 +569,7 @@ func (c *ClientCIMXML) GetClass(namespaceName string, className string, localOnl
 	return resp.Message.SimpleRsp.IMethodResponse.ReturnValue.Classes[0].String(), nil
 }
 
-func (c *ClientCIMXML) EnumerateClasses(namespaceName string, className string, deepInheritance bool,
+func (c *ClientCIMXML) EnumerateClasses(ctx context.Context, namespaceName string, className string, deepInheritance bool,
 	localOnly bool, includeQualifiers bool, includeClassOrigin bool) ([]string, error) {
 	if "" == namespaceName {
 		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
@@ -654,7 +655,7 @@ func (c *ClientCIMXML) EnumerateClasses(namespaceName string, className string, 
 	// CIMMethod: EnumerateClassNames
 	// CIMObject: root%2Fcimv2
 
-	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
 		"CIMOperation": "MethodCall",
 		"CIMMethod":    "EnumerateClasses",
 		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
@@ -671,7 +672,7 @@ func (c *ClientCIMXML) EnumerateClasses(namespaceName string, className string, 
 	return results, nil
 }
 
-func (c *ClientCIMXML) AssociatorNames(namespaceName string, instanceName CIMInstanceName,
+func (c *ClientCIMXML) AssociatorNames(ctx context.Context, namespaceName string, instanceName CIMInstanceName,
 	assocClass, resultClass, role, resultRole string) ([]CIMInstanceName, error) {
 
 	if "" == namespaceName {
@@ -770,7 +771,7 @@ func (c *ClientCIMXML) AssociatorNames(namespaceName string, instanceName CIMIns
 	// CIMMethod: EnumerateClassNames
 	// CIMObject: root%2Fcimv2
 
-	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
 		"CIMOperation": "MethodCall",
 		"CIMMethod":    "AssociatorNames",
 		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
@@ -784,7 +785,7 @@ func (c *ClientCIMXML) AssociatorNames(namespaceName string, instanceName CIMIns
 	return results, nil
 }
 
-func (c *ClientCIMXML) AssociatorInstances(namespaceName string, instanceName CIMInstanceName,
+func (c *ClientCIMXML) AssociatorInstances(ctx context.Context, namespaceName string, instanceName CIMInstanceName,
 	assocClass, resultClass, role, resultRole string, includeClassOrigin bool, propertyList []string) ([]CIMInstance, error) {
 	if "" == namespaceName {
 		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
@@ -898,7 +899,7 @@ func (c *ClientCIMXML) AssociatorInstances(namespaceName string, instanceName CI
 	// CIMMethod: EnumerateClassNames
 	// CIMObject: root%2Fcimv2
 
-	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
 		"CIMOperation": "MethodCall",
 		"CIMMethod":    "Associators",
 		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
@@ -919,7 +920,7 @@ func (c *ClientCIMXML) AssociatorInstances(namespaceName string, instanceName CI
 	return results, nil
 }
 
-func (c *ClientCIMXML) AssociatorClasses(namespaceName, className, assocClass, resultClass, role, resultRole string,
+func (c *ClientCIMXML) AssociatorClasses(ctx context.Context, namespaceName, className, assocClass, resultClass, role, resultRole string,
 	includeQualifiers, includeClassOrigin bool, propertyList []string) ([]string, error) {
 	if "" == namespaceName {
 		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
@@ -1037,7 +1038,7 @@ func (c *ClientCIMXML) AssociatorClasses(namespaceName, className, assocClass, r
 	// CIMMethod: Associators
 	// CIMObject: root%2Fcimv2
 
-	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
 		"CIMOperation": "MethodCall",
 		"CIMMethod":    "Associators",
 		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
@@ -1064,7 +1065,7 @@ func (c *ClientCIMXML) AssociatorClasses(namespaceName, className, assocClass, r
 	return results, nil
 }
 
-func (c *ClientCIMXML) ReferenceNames(namespaceName string, instanceName CIMInstanceName,
+func (c *ClientCIMXML) ReferenceNames(ctx context.Context, namespaceName string, instanceName CIMInstanceName,
 	resultClass, role string) ([]CIMInstanceName, error) {
 
 	if "" == namespaceName {
@@ -1154,7 +1155,7 @@ func (c *ClientCIMXML) ReferenceNames(namespaceName string, instanceName CIMInst
 	// CIMMethod: ReferenceNames
 	// CIMObject: root%2Fcimv2
 
-	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
 		"CIMOperation": "MethodCall",
 		"CIMMethod":    "ReferenceNames",
 		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
@@ -1168,7 +1169,7 @@ func (c *ClientCIMXML) ReferenceNames(namespaceName string, instanceName CIMInst
 	return results, nil
 }
 
-func (c *ClientCIMXML) ReferenceInstances(namespaceName string, instanceName CIMInstanceName,
+func (c *ClientCIMXML) ReferenceInstances(ctx context.Context, namespaceName string, instanceName CIMInstanceName,
 	resultClass, role string, includeClassOrigin bool, propertyList []string) ([]CIMInstance, error) {
 	if "" == namespaceName {
 		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
@@ -1268,7 +1269,7 @@ func (c *ClientCIMXML) ReferenceInstances(namespaceName string, instanceName CIM
 	// CIMMethod: EnumerateClassNames
 	// CIMObject: root%2Fcimv2
 
-	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
 		"CIMOperation": "MethodCall",
 		"CIMMethod":    "References",
 		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
@@ -1290,7 +1291,7 @@ func (c *ClientCIMXML) ReferenceInstances(namespaceName string, instanceName CIM
 	return results, nil
 }
 
-func (c *ClientCIMXML) ReferenceClasses(namespaceName, className, resultClass, role string,
+func (c *ClientCIMXML) ReferenceClasses(ctx context.Context, namespaceName, className, resultClass, role string,
 	includeQualifiers, includeClassOrigin bool, propertyList []string) ([]string, error) {
 	if "" == namespaceName {
 		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
@@ -1395,7 +1396,7 @@ func (c *ClientCIMXML) ReferenceClasses(namespaceName, className, resultClass, r
 	// CIMMethod: References
 	// CIMObject: root%2Fcimv2
 
-	if err := c.RoundTrip("POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
 		"CIMOperation": "MethodCall",
 		"CIMMethod":    "References",
 		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
