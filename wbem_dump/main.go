@@ -43,61 +43,89 @@ func main() {
 	if nil != e {
 		log.Fatalln("连接失败，", e)
 	}
-	names, e := c.EnumerateClassNames(context.Background(), *namespace, "", false)
-	if nil != e {
-		log.Fatalln("枚举类名失败，", e)
-	}
-	if 0 == len(names) {
-		log.Fatalln("没有类定义？，")
-	}
-	for _, name := range names {
-		fmt.Println(name)
-
-		// timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-		// instances, err := c.EnumerateInstances(timeCtx,
-		// 	*namespace, name, true, false, true, true, nil)
-		// if err != nil {
-		// 	if !gowbem.IsErrNotSupported(err) {
-		// 		fmt.Println(fmt.Sprintf("%T %v", err, err))
-		// 	}
-		// 	continue
-		// }
-		// for _, instance := range instances {
-		// 	fmt.Println(spew.Sprint(instance))
-		// }
-	}
-
-	fmt.Println("测试成功！")
 
 	timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	computerSystems, err := c.EnumerateInstances(timeCtx, *namespace,
-		"CIM_ComputerSystem ", true, false, true, true, nil)
-	if err != nil {
-		if !gowbem.IsErrNotSupported(err) {
-			fmt.Println(fmt.Sprintf("%T %v", err, err))
-		}
-		return
+	var namespaces, err = c.EnumerateNamespaces(timeCtx, nil)
+	if nil != err {
+		log.Fatalln("连接失败，", err)
 	}
-
-	for _, computer := range computerSystems {
-		timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-		instances, err := c.AssociatorInstances(timeCtx, *namespace, computer.GetName(), "CIM_InstalledSoftwareIdentity",
-			"CIM_SoftwareIdentity",
-			"System", "InstalledSoftware", true, nil)
-		if err != nil {
-			if !gowbem.IsErrNotSupported(err) {
-				fmt.Println(fmt.Sprintf("%T %v", err, err))
+	for _, ns := range namespaces {
+		fmt.Println("开始处理", ns)
+		names, e := c.EnumerateClassNames(context.Background(), ns, "", false)
+		if nil != e {
+			if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
+				fmt.Println("枚举类名失败，", e)
 			}
-			continue
+			return
 		}
+		if 0 == len(names) {
+			fmt.Println("没有类定义？，")
+			return
+		}
+		for _, name := range names {
+			timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+			instanceNames, err := c.EnumerateInstanceNames(timeCtx, ns, name)
+			if err != nil {
+				fmt.Println(name, 0)
 
-		for _, instance := range instances {
-			fmt.Println("-----------------")
-			for _, k := range instance.GetProperties() {
-				fmt.Println(k.GetName(), k.GetValue())
+				if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
+					fmt.Println(fmt.Sprintf("%T %v", err, err))
+				}
+				continue
+			}
+
+			fmt.Println(name, len(instanceNames))
+
+			for _, instanceName := range instanceNames {
+				timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+				_, err := c.GetInstanceByInstanceName(timeCtx, ns, instanceName, false, true, true, nil)
+				if err != nil {
+					if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
+						fmt.Println(fmt.Sprintf("%T %v", err, err))
+					}
+					continue
+				}
+
+				// fmt.Println()
+				// fmt.Println()
+				// fmt.Println(instanceName.String())
+				//for _, k := range instance.GetProperties() {
+				//	fmt.Println(k.GetName(), k.GetValue())
+				//}
 			}
 		}
 	}
+	fmt.Println("导出成功！")
 
-	fmt.Println("测试成功！")
+	// timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	// computerSystems, err := c.EnumerateInstances(timeCtx, *namespace,
+	// 	"CIM_ComputerSystem ", true, false, true, true, nil)
+	// if err != nil {
+	// 	if !gowbem.IsErrNotSupported(err) {
+	// 		fmt.Println(fmt.Sprintf("%T %v", err, err))
+	// 	}
+	// 	return
+	// }
+
+	// for _, computer := range computerSystems {
+	// 	timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	// 	instances, err := c.AssociatorInstances(timeCtx, *namespace, computer.GetName(), "CIM_InstalledSoftwareIdentity",
+	// 		"CIM_SoftwareIdentity",
+	// 		"System", "InstalledSoftware", true, nil)
+	// 	if err != nil {
+	// 		if !gowbem.IsErrNotSupported(err) {
+	// 			fmt.Println(fmt.Sprintf("%T %v", err, err))
+	// 		}
+	// 		continue
+	// 	}
+
+	// 	for _, instance := range instances {
+	// 		fmt.Println("-----------------")
+	// 		for _, k := range instance.GetProperties() {
+	// 			fmt.Println(k.GetName(), k.GetValue())
+	// 		}
+	// 	}
+	// }
+
+	// fmt.Println("测试成功！")
 }

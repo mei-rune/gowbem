@@ -1,10 +1,14 @@
 package gowbem
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
+	"log"
 	"net/url"
 	"strings"
+	"time"
 )
 
 var (
@@ -21,6 +25,20 @@ var (
 	classesNotExists             = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.CLASS isn't exists.")
 	classesMutiChioce            = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.CLASS is greate one.")
 )
+
+func IsEmptyResults(e error) bool {
+	if e == ireturnValueNotExists {
+		return true
+	}
+	if faultError, ok := e.(*FaultError); ok &&
+		(faultError.err == ireturnValueNotExists ||
+			faultError.err == instancePathNotExists ||
+			faultError.err == instanceNamesNotExists ||
+			faultError.err == valueNamedInstancesNotExists) {
+		return true
+	}
+	return false
+}
 
 func booleanString(b bool) string {
 	if b {
@@ -44,6 +62,108 @@ func (c *ClientCIMXML) init(u *url.URL, insecure bool) {
 	c.ProtocolVersion = "1.0"
 
 	//fmt.Println(c.Client.u.User)
+}
+
+func (c *ClientCIMXML) EnumerateNamespaces(ctx context.Context, nsList []string) ([]string, error) {
+	defaultNS := append(nsList, "interop",
+		"root/interop",
+		"root/cimv2",
+		"root/PG_InterOp",
+		"root/PG_Internal")
+
+	var errList []error
+	allList := append(nsList, defaultNS...)
+
+	var namespaces = map[string]struct{}{}
+	for _, ns := range allList {
+		for _, className := range []string{"CIM_Namespace",
+			"__Namespace",
+			"PG_NameSpace"} {
+			timerCtx, _ := context.WithTimeout(ctx, 2*time.Second)
+			instances, err := c.EnumerateInstances(timerCtx, ns, className, true, false, true, true, nil)
+			if err != nil {
+				if !IsErrNotSupported(err) && !IsEmptyResults(err) {
+					errList = append(errList, err)
+				}
+				continue
+			}
+
+			for _, instance := range instances {
+				name := instance.GetInstance().GetPropertyByName("Name").GetValue()
+				if name != nil && fmt.Sprint(name) != "" {
+					namespaces[fmt.Sprint(name)] = struct{}{}
+				}
+			}
+		}
+	}
+	for _, ns := range []string{"interop",
+		"root/interop",
+		"root/PG_InterOp",
+		"root/PG_Internal"} {
+		for _, className := range []string{"PG_ProviderCapabilities"} {
+			timerCtx, _ := context.WithTimeout(ctx, 2*time.Second)
+			instanceNames, err := c.EnumerateInstanceNames(timerCtx, ns, className)
+			if err != nil {
+				if !IsErrNotSupported(err) && !IsEmptyResults(err) {
+					errList = append(errList, err)
+				}
+				continue
+			}
+			if len(instanceNames) <= 0 {
+				continue
+			}
+
+			timerCtx, _ = context.WithTimeout(ctx, 2*time.Second)
+
+			// instance, err := GetInstanceByInstanceName(timerCtx, ns, instanceNames[0], false, false, false, nil)
+			instance, err := c.GetInstanceByInstanceName(timerCtx, ns, instanceNames[0], false, false, false, nil)
+			if err != nil {
+				if !IsErrNotSupported(err) {
+					errList = append(errList, err)
+				}
+				continue
+			}
+
+			names := StringsWith(instance, "Namespaces", nil)
+			for _, name := range names {
+				if name != "" {
+					namespaces[name] = struct{}{}
+				}
+			}
+		}
+	}
+
+	noDefault := 0
+	var results = make([]string, 0, len(namespaces))
+	for ns := range namespaces {
+		isDefault := false
+		for _, s := range defaultNS {
+			if s == ns {
+				isDefault = true
+				break
+			}
+		}
+		if !isDefault {
+			noDefault++
+		}
+		results = append(results, ns)
+	}
+
+	if noDefault == 0 {
+		if len(errList) > 0 {
+			var buf bytes.Buffer
+			buf.WriteString("list namespaces is unsuccessful:")
+			for _, e := range errList {
+				buf.WriteString("\r\n\t")
+				buf.WriteString(e.Error())
+			}
+			log.Println("[wbem]", c.u.Host, "-", buf.String())
+		} else {
+			log.Println("[wbem]", c.u.Host, "- list namespaces is unsuccessful.")
+		}
+	}
+
+	return results, nil
 }
 
 func (c *ClientCIMXML) EnumerateClassNames(ctx context.Context, namespaceName, className string, deep bool) ([]string, error) {
@@ -786,7 +906,7 @@ func (c *ClientCIMXML) AssociatorNames(ctx context.Context, namespaceName string
 }
 
 func (c *ClientCIMXML) AssociatorInstances(ctx context.Context, namespaceName string, instanceName CIMInstanceName,
-	assocClass, resultClass, role, resultRole string, includeClassOrigin bool, propertyList []string) ([]CIMInstance, error) {
+	assocClass, resultClass, role, resultRole string, includeClassOrigin bool, propertyList []string) ([]CIMInstanceWithName, error) {
 	if "" == namespaceName {
 		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
 			"namespace name is empty.")
@@ -906,15 +1026,15 @@ func (c *ClientCIMXML) AssociatorInstances(ctx context.Context, namespaceName st
 		return nil, err
 	}
 
-	results := make([]CIMInstance, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths))
+	results := make([]CIMInstanceWithName, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths))
 	if count := len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths); count > 0 {
 		for idx, _ := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths {
-			results[idx] = resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths[idx].Instance
+			results[idx] = resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithPaths[idx]
 		}
 	}
 	if count := len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithLocalPaths); count > 0 {
 		for idx, _ := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithLocalPaths {
-			results = append(results, resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithLocalPaths[idx].Instance)
+			results = append(results, resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ValueObjectWithLocalPaths[idx])
 		}
 	}
 	return results, nil

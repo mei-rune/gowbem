@@ -649,6 +649,14 @@ type CimValueObjectWithPath struct {
 	Instance     *CimInstance     `xml:"INSTANCE,omitempty"`
 }
 
+func (object CimValueObjectWithPath) GetName() CIMInstanceName {
+	return &object.InstancePath.InstanceName
+}
+
+func (object CimValueObjectWithPath) GetInstance() CIMInstance {
+	return object.Instance
+}
+
 //     <xs:element name="VALUE.OBJECTWITHLOCALPATH">
 //         <xs:annotation>
 //             <xs:documentation>Defines a value that comprises a CIM object (class or instance) definition with additional
@@ -674,6 +682,14 @@ type CimValueObjectWithLocalPath struct {
 	Class        *CimClass             `xml:"CLASS,omitempty"`
 	InstancePath *CimLocalInstancePath `xml:"LOCALINSTANCEPATH,omitempty"`
 	Instance     *CimInstance          `xml:"INSTANCE,omitempty"`
+}
+
+func (object CimValueObjectWithLocalPath) GetName() CIMInstanceName {
+	return &object.InstancePath.InstanceName
+}
+
+func (object CimValueObjectWithLocalPath) GetInstance() CIMInstance {
+	return object.Instance
 }
 
 //     <xs:element name="VALUE.NULL">

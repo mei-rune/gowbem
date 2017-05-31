@@ -259,3 +259,26 @@ func (c *Client) RoundTrip(ctx context.Context, action string, headers map[strin
 
 	return nil
 }
+
+func StringsWith(instance CIMInstance, key string, defaultVlaue []string) []string {
+	prop := instance.GetPropertyByName(key)
+	if prop == nil {
+		return defaultVlaue
+	}
+	value := prop.GetValue()
+	if value == nil {
+		return defaultVlaue
+	}
+	switch vv := value.(type) {
+	case []string:
+		return vv
+	case []interface{}:
+		var ss = make([]string, 0, len(vv))
+		for _, v := range vv {
+			ss = append(ss, fmt.Sprint(v))
+		}
+		return ss
+	default:
+		panic(fmt.Sprintf("[wbem] value isn't a array - %T %#v.", value, value))
+	}
+}
