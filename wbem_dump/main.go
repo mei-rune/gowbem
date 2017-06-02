@@ -51,16 +51,16 @@ func main() {
 	}
 	for _, ns := range namespaces {
 		fmt.Println("开始处理", ns)
-		names, e := c.EnumerateClassNames(context.Background(), ns, "", false)
+		names, e := c.EnumerateClassNames(context.Background(), ns, "", true)
 		if nil != e {
 			if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
 				fmt.Println("枚举类名失败，", e)
 			}
-			return
+			continue
 		}
 		if 0 == len(names) {
 			fmt.Println("没有类定义？，")
-			return
+			continue
 		}
 		for _, name := range names {
 			timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
