@@ -137,7 +137,7 @@ func (c *Client) UnmarshalJSON(b []byte) error {
 
 func (c *Client) RoundTrip(ctx context.Context, action string, headers map[string]string, reqBody interface{}, resBody HasFault) error {
 	err := c.roundTrip(ctx, action, headers, reqBody, resBody)
-	if err != nil && c.rn <= 1 {
+	if err != nil && atomic.LoadUint64(&c.rn) <= 1 {
 		if c.contentType == "" {
 			if headers == nil {
 				headers = map[string]string{
