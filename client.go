@@ -66,8 +66,9 @@ type Client struct {
 
 	http.Client
 
-	u        url.URL
-	insecure bool
+	u           url.URL
+	insecure    bool
+	contentType string
 
 	cn_str string // Client counter
 	cn     uint64 // Client counter
@@ -135,6 +136,28 @@ func (c *Client) UnmarshalJSON(b []byte) error {
 }
 
 func (c *Client) RoundTrip(ctx context.Context, action string, headers map[string]string, reqBody interface{}, resBody HasFault) error {
+	err := c.roundTrip(ctx, action, headers, reqBody, resBody)
+	if err != nil && c.rn <= 1 {
+		if c.contentType == "" {
+			if headers == nil {
+				headers = map[string]string{
+					`Content-Type`: `text/xml; charset="utf-8"`,
+				}
+			} else {
+				headers[`Content-Type`] = `text/xml; charset="utf-8"`
+			}
+
+			e := c.roundTrip(ctx, action, headers, reqBody, resBody)
+			if e == nil {
+				c.contentType = `text/xml; charset="utf-8"`
+				return nil
+			}
+		}
+	}
+	return err
+}
+
+func (c *Client) roundTrip(ctx context.Context, action string, headers map[string]string, reqBody interface{}, resBody HasFault) error {
 	var httpreq *http.Request
 	var httpres *http.Response
 	var dumpWriter io.WriteCloser
@@ -162,7 +185,12 @@ func (c *Client) RoundTrip(ctx context.Context, action string, headers map[strin
 	//	httpreq.SetBasicAuth(c.u.User.Username(), pwd)
 	//}
 
-	httpreq.Header.Set(`Content-Type`, `text/xml; charset="utf-8"`)
+	//httpreq.Header.Set(`Content-Type`, `text/xml; charset="utf-8"`)
+	if c.contentType == "" {
+		httpreq.Header.Set(`Content-Type`, `application/xml; charset="utf-8"`)
+	} else {
+		httpreq.Header.Set(`Content-Type`, c.contentType)
+	}
 	if 0 != len(headers) {
 		for k, v := range headers {
 			httpreq.Header.Set(k, v)
@@ -188,7 +216,6 @@ func (c *Client) RoundTrip(ctx context.Context, action string, headers map[strin
 	// }
 
 	if err != nil {
-
 		if DebugEnabled() {
 			dumpWriter.Write([]byte("\r\n"))
 			dumpWriter.Write([]byte(err.Error()))
