@@ -1,6 +1,7 @@
 package gowbem
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 )
 
 var (
@@ -38,7 +40,9 @@ func TestEnumerateClassNames(t *testing.T) {
 		t.Error(e)
 		return
 	}
-	names, e := c.EnumerateClassNames("root/cimv2", "", false)
+
+	timerCtx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	names, e := c.EnumerateClassNames(timerCtx, "root/cimv2", "", false)
 	if nil != e {
 		t.Error(e)
 		return
@@ -51,7 +55,8 @@ func TestEnumerateClassNames(t *testing.T) {
 		t.Log(name)
 	}
 
-	names2, e := c.EnumerateClassNames("root/cimv2", "", true)
+	timerCtx, _ = context.WithTimeout(context.Background(), 10*time.Second)
+	names2, e := c.EnumerateClassNames(timerCtx, "root/cimv2", "", true)
 	if nil != e {
 		t.Error(e)
 		return
@@ -82,7 +87,8 @@ func TestEnumerateInstanceNames(t *testing.T) {
 		t.Error(e)
 		return
 	}
-	names, e := c.EnumerateInstanceNames("root/cimv2", "Linux_UnixProcess")
+	timerCtx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	names, e := c.EnumerateInstanceNames(timerCtx, "root/cimv2", "Linux_UnixProcess")
 	if nil != e {
 		t.Error(e)
 		return
@@ -97,7 +103,8 @@ func TestEnumerateInstanceNames(t *testing.T) {
 			break
 		}
 
-		instance1, e := c.GetInstanceByInstanceName("root/cimv2", name, true, true, true, nil)
+		timerCtx, _ = context.WithTimeout(context.Background(), 10*time.Second)
+		instance1, e := c.GetInstanceByInstanceName(timerCtx, "root/cimv2", name, true, true, true, nil)
 		if nil != e {
 			t.Error(e)
 			continue
@@ -118,7 +125,8 @@ func TestEnumerateInstanceNames(t *testing.T) {
 			namespace = "root/cimv2"
 		}
 
-		instance2, e := c.GetInstance(namespace, className, keyBindings, true, true, true, nil)
+		timerCtx, _ = context.WithTimeout(context.Background(), 10*time.Second)
+		instance2, e := c.GetInstance(timerCtx, namespace, className, keyBindings, true, true, true, nil)
 		if nil != e {
 			t.Error(e)
 			continue
@@ -144,7 +152,8 @@ func TestEnumerateInstances(t *testing.T) {
 		t.Error(e)
 		return
 	}
-	instances, e := c.EnumerateInstances("root/cimv2", "Linux_UnixProcess", false, false, false, false, nil)
+	timerCtx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	instances, e := c.EnumerateInstances(timerCtx, "root/cimv2", "Linux_UnixProcess", false, false, false, false, nil)
 	if nil != e {
 		t.Error(e)
 		return
@@ -176,7 +185,8 @@ func TestEnumerateInstances2(t *testing.T) {
 		t.Error(e)
 		return
 	}
-	instances, e := c.EnumerateInstances("root/cimv2", "CIM_Processor", false, false, false, false, nil)
+	timerCtx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	instances, e := c.EnumerateInstances(timerCtx, "root/cimv2", "CIM_Processor", false, false, false, false, nil)
 	if nil != e {
 		t.Error(e)
 		return
@@ -195,7 +205,9 @@ func TestEnumerateInstances2(t *testing.T) {
 
 		//instanceName := instance
 		//instanceName.GetKeyBindings().Get(0).GetValue()
-		instanceWithNames, e := c.AssociatorInstances("root/cimv2", instance.GetName(), "", "", "", "", false, nil)
+
+		timerCtx, _ = context.WithTimeout(context.Background(), 10*time.Second)
+		instanceWithNames, e := c.AssociatorInstances(timerCtx, "root/cimv2", instance.GetName(), "", "", "", "", false, nil)
 		if nil != e {
 			//t.Error(e)
 			fmt.Println(e)
@@ -207,8 +219,8 @@ func TestEnumerateInstances2(t *testing.T) {
 
 		for _, instance := range instanceWithNames {
 			//t.Log(instance.GetName())
-			for i := 0; i < instance.GetPropertyCount(); i++ {
-				pr := instance.GetPropertyByIndex(i)
+			for i := 0; i < instance.GetInstance().GetPropertyCount(); i++ {
+				pr := instance.GetInstance().GetPropertyByIndex(i)
 				t.Log("\t", pr.GetName(), "=", pr.GetValue())
 			}
 		}
@@ -228,7 +240,8 @@ func TestGetClass(t *testing.T) {
 		t.Error(e)
 		return
 	}
-	class, e := c.GetClass("root/cimv2", "Linux_UnixProcess", true, true, true, nil)
+	timerCtx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	class, e := c.GetClass(timerCtx, "root/cimv2", "Linux_UnixProcess", true, true, true, nil)
 	if nil != e {
 		t.Error(e)
 		return
@@ -254,7 +267,9 @@ func TestEnumerateClasses(t *testing.T) {
 		t.Error(e)
 		return
 	}
-	classes, e := c.EnumerateClasses("root/cimv2", "CIM_UnixProcess", true, true, true, true)
+
+	timerCtx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	classes, e := c.EnumerateClasses(timerCtx, "root/cimv2", "CIM_UnixProcess", true, true, true, true)
 	if nil != e {
 		t.Error(e)
 		return
@@ -283,7 +298,8 @@ func TestAssociatorInstances(t *testing.T) {
 		return
 	}
 
-	names, e := c.EnumerateClassNames("root/cimv2", "", true)
+	timerCtx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	names, e := c.EnumerateClassNames(timerCtx, "root/cimv2", "", true)
 	if nil != e {
 		t.Error(e)
 		return
@@ -298,7 +314,9 @@ func TestAssociatorInstances(t *testing.T) {
 			continue
 		}
 		fmt.Println(idx, "========", name)
-		instances, e := c.EnumerateInstanceNames("root/cimv2", name) //, false, false, false, false, nil)
+
+		timerCtx, _ = context.WithTimeout(context.Background(), 10*time.Second)
+		instances, e := c.EnumerateInstanceNames(timerCtx, "root/cimv2", name) //, false, false, false, false, nil)
 		if nil != e {
 			//t.Error(e)
 			//return
@@ -338,7 +356,9 @@ func TestAssociatorInstances(t *testing.T) {
 				fmt.Println("==========", instance)
 				//instanceName := instance
 				//instanceName.GetKeyBindings().Get(0).GetValue()
-				instanceWithNames, e := c.AssociatorInstances("root/cimv2", instance, "", "", "", "", false, nil)
+
+				timerCtx, _ = context.WithTimeout(context.Background(), 10*time.Second)
+				instanceWithNames, e := c.AssociatorInstances(timerCtx, "root/cimv2", instance, "", "", "", "", false, nil)
 				if nil != e {
 					//t.Error(e)
 					fmt.Println(e)
@@ -351,8 +371,8 @@ func TestAssociatorInstances(t *testing.T) {
 
 				for _, instance := range instanceWithNames {
 					//t.Log(instance.GetName())
-					for i := 0; i < instance.GetPropertyCount(); i++ {
-						pr := instance.GetPropertyByIndex(i)
+					for i := 0; i < instance.GetInstance().GetPropertyCount(); i++ {
+						pr := instance.GetInstance().GetPropertyByIndex(i)
 						t.Log(pr.GetName(), "=", pr.GetValue())
 					}
 				}

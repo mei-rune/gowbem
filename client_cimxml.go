@@ -64,22 +64,27 @@ func (c *ClientCIMXML) init(u *url.URL, insecure bool) {
 	//fmt.Println(c.Client.u.User)
 }
 
-func (c *ClientCIMXML) EnumerateNamespaces(ctx context.Context, nsList []string) ([]string, error) {
-	defaultNS := append(nsList, "interop",
+func (c *ClientCIMXML) EnumerateNamespaces(ctx context.Context, nsList []string, timeout time.Duration, cb func(int, int)) ([]string, error) {
+	defaultNS := []string{"interop",
 		"root/interop",
 		"root/cimv2",
 		"root/PG_InterOp",
-		"root/PG_Internal")
+		"root/PG_Internal"}
 
 	var errList []error
 	allList := append(nsList, defaultNS...)
 
+	if timeout == 0 {
+		timeout = 10 * time.Second
+	}
+
+	total := len(allList)*3 + 4
 	var namespaces = map[string]struct{}{}
-	for _, ns := range allList {
+	for idx, ns := range allList {
 		for _, className := range []string{"CIM_Namespace",
 			"__Namespace",
 			"PG_NameSpace"} {
-			timerCtx, _ := context.WithTimeout(ctx, 2*time.Second)
+			timerCtx, _ := context.WithTimeout(ctx, timeout)
 			instances, err := c.EnumerateInstances(timerCtx, ns, className, true, false, true, true, nil)
 			if err != nil {
 				if !IsErrNotSupported(err) && !IsEmptyResults(err) {
@@ -95,40 +100,51 @@ func (c *ClientCIMXML) EnumerateNamespaces(ctx context.Context, nsList []string)
 				}
 			}
 		}
+
+		if cb != nil {
+			cb(total, (idx+1)*3)
+		}
 	}
-	for _, ns := range []string{"interop",
-		"root/interop",
-		"root/PG_InterOp",
-		"root/PG_Internal"} {
-		for _, className := range []string{"PG_ProviderCapabilities"} {
-			timerCtx, _ := context.WithTimeout(ctx, 2*time.Second)
-			instanceNames, err := c.EnumerateInstanceNames(timerCtx, ns, className)
-			if err != nil {
-				if !IsErrNotSupported(err) && !IsEmptyResults(err) {
-					errList = append(errList, err)
+
+	if len(namespaces) == 0 {
+		for idx, ns := range []string{"interop",
+			"root/interop",
+			"root/PG_InterOp",
+			"root/PG_Internal"} {
+			for _, className := range []string{"PG_ProviderCapabilities"} {
+				timerCtx, _ := context.WithTimeout(ctx, timeout)
+				instanceNames, err := c.EnumerateInstanceNames(timerCtx, ns, className)
+				if err != nil {
+					if !IsErrNotSupported(err) && !IsEmptyResults(err) {
+						errList = append(errList, err)
+					}
+					continue
 				}
-				continue
-			}
-			if len(instanceNames) <= 0 {
-				continue
+				if len(instanceNames) <= 0 {
+					continue
+				}
+
+				timerCtx, _ = context.WithTimeout(ctx, 2*time.Second)
+
+				// instance, err := GetInstanceByInstanceName(timerCtx, ns, instanceNames[0], false, false, false, nil)
+				instance, err := c.GetInstanceByInstanceName(timerCtx, ns, instanceNames[0], false, false, false, nil)
+				if err != nil {
+					if !IsErrNotSupported(err) {
+						errList = append(errList, err)
+					}
+					continue
+				}
+
+				names := StringsWith(instance, "Namespaces", nil)
+				for _, name := range names {
+					if name != "" {
+						namespaces[name] = struct{}{}
+					}
+				}
 			}
 
-			timerCtx, _ = context.WithTimeout(ctx, 2*time.Second)
-
-			// instance, err := GetInstanceByInstanceName(timerCtx, ns, instanceNames[0], false, false, false, nil)
-			instance, err := c.GetInstanceByInstanceName(timerCtx, ns, instanceNames[0], false, false, false, nil)
-			if err != nil {
-				if !IsErrNotSupported(err) {
-					errList = append(errList, err)
-				}
-				continue
-			}
-
-			names := StringsWith(instance, "Namespaces", nil)
-			for _, name := range names {
-				if name != "" {
-					namespaces[name] = struct{}{}
-				}
+			if cb != nil {
+				cb(total, len(allList)*3+idx)
 			}
 		}
 	}
@@ -161,6 +177,10 @@ func (c *ClientCIMXML) EnumerateNamespaces(ctx context.Context, nsList []string)
 		} else {
 			log.Println("[wbem]", c.u.Host, "- list namespaces is unsuccessful.")
 		}
+	}
+
+	if cb != nil {
+		cb(total, total)
 	}
 
 	return results, nil
