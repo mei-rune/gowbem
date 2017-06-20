@@ -103,6 +103,7 @@ func main() {
 			if err := ioutil.WriteFile(filename, []byte(class), 666); err != nil {
 				log.Fatalln(err)
 			}
+			/// @end
 
 			timeCtx, _ = context.WithTimeout(context.Background(), 30*time.Second)
 			instanceNames, err := c.EnumerateInstanceNames(timeCtx, ns, className)
@@ -114,8 +115,6 @@ func main() {
 				}
 				continue
 			}
-			/// @end
-
 			fmt.Println(className, len(instanceNames))
 
 			/// @begin 将类定义写到文件
