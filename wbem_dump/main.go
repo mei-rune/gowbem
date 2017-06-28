@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/runner-mei/gowbem"
@@ -26,6 +27,8 @@ var (
 
 	username     = flag.String("username", "root", "")
 	userpassword = flag.String("password", "root", "")
+	output       = flag.String("output", ".", "")
+	debug        = flag.Bool("debug", false, "")
 )
 
 func createURI() *url.URL {
@@ -38,8 +41,6 @@ func createURI() *url.URL {
 }
 
 func main() {
-	debug := flag.Bool("debug", false, "")
-	output := flag.String("output", ".", "")
 	flag.Parse()
 
 	if *debug {
@@ -71,95 +72,13 @@ func main() {
 	}*/
 
 	timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	var namespaces, err = c.EnumerateNamespaces(timeCtx, nil)
+	var namespaces, err = c.EnumerateNamespaces(timeCtx, nil, 10*time.Second, nil)
 	if nil != err {
 		log.Fatalln("连接失败，", err)
 	}
 	for _, ns := range namespaces {
 		fmt.Println("开始处理", ns)
-		classNames, e := c.EnumerateClassNames(context.Background(), ns, "", true)
-		if nil != e {
-			if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
-				fmt.Println("枚举类名失败，", e)
-			}
-			continue
-		}
-		if 0 == len(classNames) {
-			fmt.Println("没有类定义？，")
-			continue
-		}
-		for _, className := range classNames {
-			timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-			class, err := c.GetClass(timeCtx, ns, className, true, true, true, nil)
-			if err != nil {
-				fmt.Println("取数名失败 - ", err)
-			}
-
-			/// @begin 将类定义写到文件
-			filename := filepath.Join(*output, ns, className+".xml")
-			if err := os.MkdirAll(filepath.Join(*output, ns), 666); err != nil && !os.IsExist(err) {
-				log.Fatalln(err)
-			}
-			if err := ioutil.WriteFile(filename, []byte(class), 666); err != nil {
-				log.Fatalln(err)
-			}
-			/// @end
-
-			timeCtx, _ = context.WithTimeout(context.Background(), 30*time.Second)
-			instanceNames, err := c.EnumerateInstanceNames(timeCtx, ns, className)
-			if err != nil {
-				fmt.Println(className, 0)
-
-				if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
-					fmt.Println(fmt.Sprintf("%T %v", err, err))
-				}
-				continue
-			}
-			fmt.Println(className, len(instanceNames))
-
-			/// @begin 将类定义写到文件
-			classPath := filepath.Join(*output, ns, className)
-			if err := os.MkdirAll(classPath, 666); err != nil && !os.IsExist(err) {
-				log.Fatalln(err)
-			}
-			var buf bytes.Buffer
-			for _, instanceName := range instanceNames {
-				buf.WriteString(instanceName.String())
-				buf.WriteString("\r\n")
-			}
-			if err := ioutil.WriteFile(filepath.Join(classPath, "instances.txt"), buf.Bytes(), 666); err != nil {
-				log.Fatalln(err)
-			}
-			/// @end
-
-			for idx, instanceName := range instanceNames {
-				timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-				instance, err := c.GetInstanceByInstanceName(timeCtx, ns, instanceName, false, true, true, nil)
-				if err != nil {
-					if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
-						fmt.Println(fmt.Sprintf("%T %v", err, err))
-					}
-					continue
-				}
-
-				/// @begin 将类定义写到文件
-				bs, err := xml.MarshalIndent(instance, "", "  ")
-				if err != nil {
-					log.Fatalln(err)
-				}
-				if err := ioutil.WriteFile(filepath.Join(classPath, "instance_"+strconv.Itoa(idx)+".xml"), bs, 666); err != nil {
-					log.Fatalln(err)
-				}
-				/// @end
-
-				// fmt.Println()
-				// fmt.Println()
-				// fmt.Println(instanceName.String())
-				//for _, k := range instance.GetProperties() {
-				//	fmt.Println(k.GetName(), k.GetValue())
-				//}
-			}
-		}
+		dumpNS(c, ns)
 	}
 	fmt.Println("导出成功！")
 
@@ -194,4 +113,93 @@ func main() {
 	// }
 
 	// fmt.Println("测试成功！")
+}
+
+func dumpNS(c *gowbem.ClientCIMXML, ns string) {
+	classNames, e := c.EnumerateClassNames(context.Background(), ns, "", true)
+	if nil != e {
+		if !gowbem.IsErrNotSupported(e) && !gowbem.IsEmptyResults(e) {
+			fmt.Println("枚举类名失败，", e)
+		}
+		return
+	}
+	if 0 == len(classNames) {
+		fmt.Println("没有类定义？，")
+		return
+	}
+	for _, className := range classNames {
+		timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+		class, err := c.GetClass(timeCtx, ns, className, true, true, true, nil)
+		if err != nil {
+			fmt.Println("取数名失败 - ", err)
+		}
+
+		nsPath := strings.Replace(ns, "/", "#", -1)
+		nsPath = strings.Replace(nsPath, "\\", "@", -1)
+
+		/// @begin 将类定义写到文件
+		filename := filepath.Join(*output, nsPath, className+".xml")
+		if err := os.MkdirAll(filepath.Join(*output, nsPath), 666); err != nil && !os.IsExist(err) {
+			log.Fatalln(err)
+		}
+		if err := ioutil.WriteFile(filename, []byte(class), 666); err != nil {
+			log.Fatalln(err)
+		}
+		/// @end
+
+		timeCtx, _ = context.WithTimeout(context.Background(), 30*time.Second)
+		instanceNames, err := c.EnumerateInstanceNames(timeCtx, ns, className)
+		if err != nil {
+			fmt.Println(className, 0)
+
+			if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
+				fmt.Println(fmt.Sprintf("%T %v", err, err))
+			}
+			continue
+		}
+		fmt.Println(className, len(instanceNames))
+
+		/// @begin 将类定义写到文件
+		classPath := filepath.Join(*output, nsPath, className)
+		if err := os.MkdirAll(classPath, 666); err != nil && !os.IsExist(err) {
+			log.Fatalln(err)
+		}
+		var buf bytes.Buffer
+		for _, instanceName := range instanceNames {
+			buf.WriteString(instanceName.String())
+			buf.WriteString("\r\n")
+		}
+		if err := ioutil.WriteFile(filepath.Join(classPath, "instances.txt"), buf.Bytes(), 666); err != nil {
+			log.Fatalln(err)
+		}
+		/// @end
+
+		for idx, instanceName := range instanceNames {
+			timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+			instance, err := c.GetInstanceByInstanceName(timeCtx, ns, instanceName, false, true, true, nil)
+			if err != nil {
+				if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
+					fmt.Println(fmt.Sprintf("%T %v", err, err))
+				}
+				continue
+			}
+
+			/// @begin 将类定义写到文件
+			bs, err := xml.MarshalIndent(instance, "", "  ")
+			if err != nil {
+				log.Fatalln(err)
+			}
+			if err := ioutil.WriteFile(filepath.Join(classPath, "instance_"+strconv.Itoa(idx)+".xml"), bs, 666); err != nil {
+				log.Fatalln(err)
+			}
+			/// @end
+
+			// fmt.Println()
+			// fmt.Println()
+			// fmt.Println(instanceName.String())
+			//for _, k := range instance.GetProperties() {
+			//	fmt.Println(k.GetName(), k.GetValue())
+			//}
+		}
+	}
 }
