@@ -20,15 +20,15 @@ import (
 
 var (
 	schema    = flag.String("schema", "http", "")
-	host      = flag.String("host", "192.168.1.157", "")
-	port      = flag.String("port", "5988", "")
-	path      = flag.String("path", "/cimom", "")
-	namespace = flag.String("namespace", "root/cimv2", "")
+	host      = flag.String("host", "192.168.1.157", "主机的 IP 地址")
+	port      = flag.String("port", "5988", "主机上 CIM 服务的端口号")
+	path      = flag.String("path", "/cimom", "CIM 服务访问路径")
+	namespace = flag.String("namespace", "root/cimv2", "CIM 的命名空间")
 
-	username     = flag.String("username", "root", "")
-	userpassword = flag.String("password", "root", "")
-	output       = flag.String("output", ".", "")
-	debug        = flag.Bool("debug", false, "")
+	username     = flag.String("username", "root", "用户名")
+	userpassword = flag.String("password", "root", "用户密码")
+	output       = flag.String("output", ".", "输入目录")
+	debug        = flag.Bool("debug", false, "是不是在调试")
 )
 
 func createURI() *url.URL {
@@ -41,6 +41,11 @@ func createURI() *url.URL {
 }
 
 func main() {
+	flag.Usage = func() {
+		fmt.Println("使用方法： wbem_dump -host=192.168.1.157 -port=5988 -username=root -password=rootpwd\r\n" +
+			"可用选项")
+		flag.PrintDefaults()
+	}
 	flag.Parse()
 
 	if *debug {
@@ -72,7 +77,11 @@ func main() {
 	}*/
 
 	timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	var namespaces, err = c.EnumerateNamespaces(timeCtx, nil, 10*time.Second, nil)
+	var defaultList []string
+	if "" != *namespace {
+		defaultList = []string{*namespace}
+	}
+	var namespaces, err = c.EnumerateNamespaces(timeCtx, defaultList, 10*time.Second, nil)
 	if nil != err {
 		log.Fatalln("连接失败，", err)
 	}
