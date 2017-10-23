@@ -56,25 +56,6 @@ func main() {
 	if nil != e {
 		log.Fatalln("连接失败，", e)
 	}
-	/*{
-		timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-		instances, err := c.EnumerateInstances(timeCtx, *namespace, "CIM_DiskDrive", true, false, false, false, nil)
-		if err != nil {
-			if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
-				fmt.Println(fmt.Sprintf("%T %v", err, err))
-			}
-			return
-		}
-
-		fmt.Println()
-		fmt.Println()
-		for _, instance := range instances {
-			for _, k := range instance.GetInstance().GetProperties() {
-				fmt.Println(k.GetName(), k.GetValue())
-			}
-		}
-		return
-	}*/
 
 	timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	var defaultList []string
