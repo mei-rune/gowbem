@@ -27,7 +27,7 @@ var (
 
 	username     = flag.String("username", "root", "用户名")
 	userpassword = flag.String("password", "root", "用户密码")
-	output       = flag.String("output", ".", "输入目录")
+	output       = flag.String("output", ".", "结果的输出目录")
 	debug        = flag.Bool("debug", false, "是不是在调试")
 )
 
