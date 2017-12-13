@@ -24,6 +24,7 @@ var (
 	port      = flag.String("port", "5988", "主机上 CIM 服务的端口号")
 	path      = flag.String("path", "/cimom", "CIM 服务访问路径")
 	namespace = flag.String("namespace", "root/cimv2", "CIM 的命名空间")
+	classname = flag.String("class", "", "CIM 的的类名")
 
 	username     = flag.String("username", "root", "用户名")
 	userpassword = flag.String("password", "root", "用户密码")
@@ -55,6 +56,11 @@ func main() {
 	c, e := gowbem.NewClientCIMXML(createURI(), true)
 	if nil != e {
 		log.Fatalln("连接失败，", e)
+	}
+
+	if *classname != "" && *namespace != "" {
+		dumpClass(c, *namespace, *classname)
+		return
 	}
 
 	timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
@@ -137,59 +143,66 @@ func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 		}
 		/// @end
 
-		timeCtx, _ = context.WithTimeout(context.Background(), 30*time.Second)
-		instanceNames, err := c.EnumerateInstanceNames(timeCtx, ns, className)
-		if err != nil {
-			fmt.Println(className, 0)
+		dumpClass(c, ns, class)
+	}
+}
 
+func dumpClass(c *gowbem.ClientCIMXML, ns, className string) {
+	nsPath := strings.Replace(ns, "/", "#", -1)
+	nsPath = strings.Replace(nsPath, "\\", "@", -1)
+
+	timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	instanceNames, err := c.EnumerateInstanceNames(timeCtx, ns, className)
+	if err != nil {
+		fmt.Println(className, 0)
+
+		if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
+			fmt.Println(fmt.Sprintf("%T %v", err, err))
+		}
+		return
+	}
+	fmt.Println(className, len(instanceNames))
+
+	/// @begin 将类定义写到文件
+	classPath := filepath.Join(*output, nsPath, className)
+	if err := os.MkdirAll(classPath, 666); err != nil && !os.IsExist(err) {
+		log.Fatalln(err)
+	}
+	var buf bytes.Buffer
+	for _, instanceName := range instanceNames {
+		buf.WriteString(instanceName.String())
+		buf.WriteString("\r\n")
+	}
+	if err := ioutil.WriteFile(filepath.Join(classPath, "instances.txt"), buf.Bytes(), 666); err != nil {
+		log.Fatalln(err)
+	}
+	/// @end
+
+	for idx, instanceName := range instanceNames {
+		timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+		instance, err := c.GetInstanceByInstanceName(timeCtx, ns, instanceName, false, true, true, nil)
+		if err != nil {
 			if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
 				fmt.Println(fmt.Sprintf("%T %v", err, err))
 			}
 			continue
 		}
-		fmt.Println(className, len(instanceNames))
 
 		/// @begin 将类定义写到文件
-		classPath := filepath.Join(*output, nsPath, className)
-		if err := os.MkdirAll(classPath, 666); err != nil && !os.IsExist(err) {
+		bs, err := xml.MarshalIndent(instance, "", "  ")
+		if err != nil {
 			log.Fatalln(err)
 		}
-		var buf bytes.Buffer
-		for _, instanceName := range instanceNames {
-			buf.WriteString(instanceName.String())
-			buf.WriteString("\r\n")
-		}
-		if err := ioutil.WriteFile(filepath.Join(classPath, "instances.txt"), buf.Bytes(), 666); err != nil {
+		if err := ioutil.WriteFile(filepath.Join(classPath, "instance_"+strconv.Itoa(idx)+".xml"), bs, 666); err != nil {
 			log.Fatalln(err)
 		}
 		/// @end
 
-		for idx, instanceName := range instanceNames {
-			timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-			instance, err := c.GetInstanceByInstanceName(timeCtx, ns, instanceName, false, true, true, nil)
-			if err != nil {
-				if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
-					fmt.Println(fmt.Sprintf("%T %v", err, err))
-				}
-				continue
-			}
-
-			/// @begin 将类定义写到文件
-			bs, err := xml.MarshalIndent(instance, "", "  ")
-			if err != nil {
-				log.Fatalln(err)
-			}
-			if err := ioutil.WriteFile(filepath.Join(classPath, "instance_"+strconv.Itoa(idx)+".xml"), bs, 666); err != nil {
-				log.Fatalln(err)
-			}
-			/// @end
-
-			// fmt.Println()
-			// fmt.Println()
-			// fmt.Println(instanceName.String())
-			//for _, k := range instance.GetProperties() {
-			//	fmt.Println(k.GetName(), k.GetValue())
-			//}
-		}
+		// fmt.Println()
+		// fmt.Println()
+		// fmt.Println(instanceName.String())
+		//for _, k := range instance.GetProperties() {
+		//	fmt.Println(k.GetName(), k.GetValue())
+		//}
 	}
 }
