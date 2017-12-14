@@ -19,11 +19,11 @@ import (
 )
 
 var (
-	schema    = flag.String("schema", "http", "")
+	schema    = flag.String("schema", "", "url 的 schema， 当值为空时根据 port 的值自动选择: 5988 = http, 5989 = https, 缺省值为 http")
 	host      = flag.String("host", "192.168.1.157", "主机的 IP 地址")
-	port      = flag.String("port", "5988", "主机上 CIM 服务的端口号")
+	port      = flag.String("port", "0", "主机上 CIM 服务的端口号, 当值为 0 时根据 schema 的值自动选择: http = 5988, https = 5989 ")
 	path      = flag.String("path", "/cimom", "CIM 服务访问路径")
-	namespace = flag.String("namespace", "root/cimv2", "CIM 的命名空间")
+	namespace = flag.String("namespace", "", "CIM 的命名空间, 缺省值： root/cimv2")
 	classname = flag.String("class", "", "CIM 的的类名")
 
 	username     = flag.String("username", "root", "用户名")
@@ -53,6 +53,25 @@ func main() {
 		gowbem.SetDebugProvider(&gowbem.FileDebugProvider{Path: *output})
 	}
 
+	if *port == "" || *port == "0" {
+		switch *schema {
+		case "http":
+			*port = "5988"
+		case "https":
+			*port = "5989"
+		case "":
+			*schema = "http"
+			*port = "5988"
+		}
+	} else if *schema == "" {
+		switch *port {
+		case "5988":
+			*schema = "http"
+		case "5989":
+			*schema = "https"
+		}
+	}
+
 	c, e := gowbem.NewClientCIMXML(createURI(), true)
 	if nil != e {
 		log.Fatalln("连接失败，", e)
@@ -63,52 +82,25 @@ func main() {
 		return
 	}
 
+	var namespaces []string
 	timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	var defaultList []string
-	if "" != *namespace {
-		defaultList = []string{*namespace}
+
+	if "" == *namespace {
+		var err error
+		namespaces, err = c.EnumerateNamespaces(timeCtx, []string{"root/cimv2"}, 10*time.Second, nil)
+		if nil != err {
+			log.Fatalln("连接失败，", err)
+		}
+	} else {
+		namespaces = []string{*namespace}
 	}
-	var namespaces, err = c.EnumerateNamespaces(timeCtx, defaultList, 10*time.Second, nil)
-	if nil != err {
-		log.Fatalln("连接失败，", err)
-	}
+
+	fmt.Println("命令空间有：", namespaces)
 	for _, ns := range namespaces {
 		fmt.Println("开始处理", ns)
 		dumpNS(c, ns)
 	}
 	fmt.Println("导出成功！")
-
-	// timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	// computerSystems, err := c.EnumerateInstances(timeCtx, *namespace,
-	// 	"CIM_ComputerSystem ", true, false, true, true, nil)
-	// if err != nil {
-	// 	if !gowbem.IsErrNotSupported(err) {
-	// 		fmt.Println(fmt.Sprintf("%T %v", err, err))
-	// 	}
-	// 	return
-	// }
-
-	// for _, computer := range computerSystems {
-	// 	timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	// 	instances, err := c.AssociatorInstances(timeCtx, *namespace, computer.GetName(), "CIM_InstalledSoftwareIdentity",
-	// 		"CIM_SoftwareIdentity",
-	// 		"System", "InstalledSoftware", true, nil)
-	// 	if err != nil {
-	// 		if !gowbem.IsErrNotSupported(err) {
-	// 			fmt.Println(fmt.Sprintf("%T %v", err, err))
-	// 		}
-	// 		continue
-	// 	}
-
-	// 	for _, instance := range instances {
-	// 		fmt.Println("-----------------")
-	// 		for _, k := range instance.GetProperties() {
-	// 			fmt.Println(k.GetName(), k.GetValue())
-	// 		}
-	// 	}
-	// }
-
-	// fmt.Println("测试成功！")
 }
 
 func dumpNS(c *gowbem.ClientCIMXML, ns string) {
@@ -123,6 +115,8 @@ func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 		fmt.Println("没有类定义？，")
 		return
 	}
+	fmt.Println("命令空间 ", ns, "下有：", classNames)
+
 	for _, className := range classNames {
 		timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 		class, err := c.GetClass(timeCtx, ns, className, true, true, true, nil)
@@ -143,7 +137,7 @@ func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 		}
 		/// @end
 
-		dumpClass(c, ns, class)
+		dumpClass(c, ns, className)
 	}
 }
 
