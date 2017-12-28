@@ -28,8 +28,8 @@ var (
 
 	username     = flag.String("username", "root", "用户名")
 	userpassword = flag.String("password", "root", "用户密码")
-	output       = flag.String("output", ".", "结果的输出目录")
-	debug        = flag.Bool("debug", false, "是不是在调试")
+	output       = flag.String("output", "", "结果的输出目录, 缺省值为当前目录")
+	debug        = flag.Bool("debug", true, "是不是在调试")
 )
 
 func createURI() *url.URL {
@@ -48,6 +48,10 @@ func main() {
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+
+	if *output == "" {
+		*output = "/" + *host
+	}
 
 	if *debug {
 		gowbem.SetDebugProvider(&gowbem.FileDebugProvider{Path: *output})
