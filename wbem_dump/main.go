@@ -50,7 +50,11 @@ func main() {
 	flag.Parse()
 
 	if *output == "" {
-		*output = "/" + *host
+		*output = "./" + *host
+	}
+
+	if err := os.MkdirAll(*output, 666); err != nil && !os.IsExist(err) {
+		log.Fatalln(err)
 	}
 
 	if *debug {
