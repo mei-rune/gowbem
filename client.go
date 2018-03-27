@@ -33,6 +33,8 @@ import (
 	"sync/atomic"
 )
 
+var ErrUnauthorized = errors.New("401 Unauthorized")
+
 type HasFault interface {
 	Fault() error
 }
@@ -153,6 +155,8 @@ func (c *Client) RoundTrip(ctx context.Context, action string, headers map[strin
 				return nil
 			}
 		}
+	} else if err == ErrUnauthorized {
+		return c.roundTrip(ctx, action, headers, reqBody, resBody)
 	}
 	return err
 }
@@ -224,6 +228,11 @@ func (c *Client) roundTrip(ctx context.Context, action string, headers map[strin
 		return err
 	}
 
+	if httpres.StatusCode == http.StatusUnauthorized {
+		httpres.Close = true
+		return ErrUnauthorized
+	}
+
 	//var rawresbody io.Reader = httpres.Body
 	defer httpres.Body.Close()
 
@@ -247,12 +256,11 @@ func (c *Client) roundTrip(ctx context.Context, action string, headers map[strin
 				return errors.New(errorDetail)
 			}
 			return errors.New(httpres.Status)
-		} else {
-			if "" != errorDetail {
-				return errors.New(cimError + ": " + errorDetail)
-			}
-			return errors.New(cimError)
 		}
+		if "" != errorDetail {
+			return errors.New(cimError + ": " + errorDetail)
+		}
+		return errors.New(cimError)
 	}
 
 	c.cached.Reset()
