@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	schema    = flag.String("schema", "", "url 的 schema， 当值为空时根据 port 的值自动选择: 5988 = http, 5989 = https, 缺省值为 http")
+	schema    = flag.String("scheme", "", "url 的 scheme, 当值为空时根据 port 的值自动选择: 5988 = http, 5989 = https, 缺省值为 http")
 	host      = flag.String("host", "192.168.1.157", "主机的 IP 地址")
 	port      = flag.String("port", "0", "主机上 CIM 服务的端口号, 当值为 0 时根据 schema 的值自动选择: http = 5988, https = 5989 ")
 	path      = flag.String("path", "/cimom", "CIM 服务访问路径")
@@ -107,6 +107,11 @@ func main() {
 	for _, ns := range namespaces {
 		fmt.Println("开始处理", ns)
 		dumpNS(c, ns)
+	}
+	if len(namespaces) == 0 {
+		fmt.Println("导出失败！")
+		os.Exit(1)
+		return
 	}
 	fmt.Println("导出成功！")
 }
