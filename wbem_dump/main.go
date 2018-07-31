@@ -25,6 +25,7 @@ var (
 	path      = flag.String("path", "/cimom", "CIM 服务访问路径")
 	namespace = flag.String("namespace", "", "CIM 的命名空间, 缺省值： root/cimv2")
 	classname = flag.String("class", "", "CIM 的的类名")
+	onlyclass = flag.Bool("onlyclass", false, "仅列出类名")
 
 	username     = flag.String("username", "root", "用户名")
 	userpassword = flag.String("password", "root", "用户密码")
@@ -128,6 +129,15 @@ func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 		fmt.Println("没有类定义？，")
 		return
 	}
+
+	if *onlyclass {
+		fmt.Println("命令空间 ", ns, "下有：")
+		for _, className := range classNames {
+			fmt.Println(className)
+		}
+		return
+	}
+
 	fmt.Println("命令空间 ", ns, "下有：", classNames)
 
 	for _, className := range classNames {
