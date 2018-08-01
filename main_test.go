@@ -1,4 +1,4 @@
-package gowbem
+package gowbem_test
 
 import (
 	"context"
@@ -10,10 +10,13 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	. "github.com/runner-mei/gowbem"
+	"github.com/runner-mei/gowbem/params"
 )
 
 var (
-	schema = flag.String("schema", "http", "")
+	schema = flag.String("scheme", "http", "")
 	host   = flag.String("host", "192.168.1.14", "")
 	port   = flag.String("port", "5988", "")
 	path   = flag.String("path", "/cimom", "")
@@ -511,3 +514,53 @@ func TestAssociatorInstances(t *testing.T) {
 // 		}
 // 	}
 // }
+
+func TestInvokeMethod(t *testing.T) {
+	if "" == *userpassword {
+		t.Skip("please input password.")
+	}
+	c, e := NewClientCIMXML(getTestUri(), false)
+	if nil != e {
+		t.Error(e)
+		return
+	}
+
+	instanceName, e := ParseInstanceName(`PG_ConfigSetting.PropertyName="hostname"`)
+	if nil != e {
+		t.Error(e)
+		return
+	}
+
+	timerCtx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	value, outParams, e := c.InvokeMethod(timerCtx, "root/PG_Internal", instanceName, "UpdatePropertyValue",
+		[]CIMParamValue{params.Value("PropertyValue", "test"), params.Value("SetPlannedValue", "true")})
+	if nil != e {
+		t.Error(e)
+		return
+	}
+	if 0 != len(outParams) {
+		for _, param := range outParams {
+			t.Log(param)
+		}
+	}
+
+	if strings.ToLower(fmt.Sprint(value)) != "true" {
+		t.Error("except is true got ", value)
+	}
+
+	timerCtx, _ = context.WithTimeout(context.Background(), 10*time.Second)
+	instanceValue, e := c.GetInstanceByInstanceName(timerCtx, "root/PG_Internal", instanceName, false, false, false, nil)
+	if nil != e {
+		t.Error(e)
+		return
+	}
+	if instanceValue == nil {
+		t.Error("instanceValue is nil")
+		return
+	}
+
+	value = instanceValue.GetPropertyByName("PlannedValue").GetValue()
+	if fmt.Sprint(value) != "test" {
+		t.Error("except is test got ", value)
+	}
+}

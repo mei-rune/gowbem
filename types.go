@@ -1,7 +1,6 @@
 package gowbem
 
 import (
-	"bytes"
 	"encoding/xml"
 	"net/url"
 	"strconv"
@@ -264,7 +263,7 @@ func (self *CimValue) IsNil() bool {
 	return false
 }
 
-func (self *CimValue) ToString(buf *bytes.Buffer) {
+func (self *CimValue) ToString(buf *strings.Builder) {
 	buf.WriteString(self.Value)
 }
 
@@ -304,7 +303,7 @@ func (self *CimValueArray) IsNil() bool {
 	return nil == self || nil == self.Values
 }
 
-func (self *CimValueArray) ToString(buf *bytes.Buffer) {
+func (self *CimValueArray) ToString(buf *strings.Builder) {
 	if nil == self || nil == self.Values {
 		buf.WriteString(NULLSTRING)
 	} else if 0 == len(self.Values) {
@@ -322,7 +321,7 @@ func (self *CimValueArray) ToString(buf *bytes.Buffer) {
 }
 
 func (self *CimValueArray) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -369,7 +368,7 @@ func (self *CimValueOrNull) UnmarshalXML(d *xml.Decoder, start xml.StartElement)
 	return nil
 }
 
-func (self *CimValueOrNull) ToString(buf *bytes.Buffer) {
+func (self *CimValueOrNull) ToString(buf *strings.Builder) {
 	if nil == self.Value {
 		buf.WriteString(NULLSTRING)
 	} else {
@@ -378,7 +377,7 @@ func (self *CimValueOrNull) ToString(buf *bytes.Buffer) {
 }
 
 func (self *CimValueOrNull) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -422,7 +421,7 @@ func (self *CimValueReference) IsNil() bool {
 		nil == self.InstanceName
 }
 
-func (self *CimValueReference) ToString(buf *bytes.Buffer) {
+func (self *CimValueReference) ToString(buf *strings.Builder) {
 	if nil != self.ClassPath {
 		self.ClassPath.ToString(buf)
 	} else if nil != self.LocalClassPath {
@@ -441,7 +440,7 @@ func (self *CimValueReference) ToString(buf *bytes.Buffer) {
 }
 
 func (self *CimValueReference) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -478,7 +477,7 @@ func (self *CimValueRefArray) IsNil() bool {
 	return nil == self || nil == self.Values
 }
 
-func (self *CimValueRefArray) ToString(buf *bytes.Buffer) {
+func (self *CimValueRefArray) ToString(buf *strings.Builder) {
 	if nil == self || nil == self.Values {
 		buf.WriteString(NULLSTRING)
 	} else if 0 == len(self.Values) {
@@ -496,7 +495,7 @@ func (self *CimValueRefArray) ToString(buf *bytes.Buffer) {
 }
 
 func (self *CimValueRefArray) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -542,7 +541,7 @@ func (self *CimValueReferenceOrNull) UnmarshalXML(d *xml.Decoder, start xml.Star
 	return nil
 }
 
-func (self *CimValueReferenceOrNull) ToString(buf *bytes.Buffer) {
+func (self *CimValueReferenceOrNull) ToString(buf *strings.Builder) {
 	if nil == self.Value {
 		buf.WriteString(NULLSTRING)
 	} else {
@@ -551,7 +550,7 @@ func (self *CimValueReferenceOrNull) ToString(buf *bytes.Buffer) {
 }
 
 func (self *CimValueReferenceOrNull) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -598,6 +597,16 @@ func (self *CimValueNamedInstance) GetName() CIMInstanceName {
 
 func (self *CimValueNamedInstance) GetInstance() CIMInstance {
 	return &self.Instance
+}
+
+func (self *CimValueNamedInstance) ToString(buf *strings.Builder) {
+	xml.NewEncoder(buf).Encode(self)
+}
+
+func (self *CimValueNamedInstance) String() string {
+	var sb strings.Builder
+	self.ToString(&sb)
+	return sb.String()
 }
 
 //     <xs:element name="VALUE.NAMEDOBJECT">
@@ -745,14 +754,14 @@ func (self *CimNamespacePath) IsNil() bool {
 	return self.LocalNamespacePath.IsNil()
 }
 
-func (self *CimNamespacePath) ToString(buf *bytes.Buffer) {
+func (self *CimNamespacePath) ToString(buf *strings.Builder) {
 	buf.WriteString(self.Host.Value)
 	buf.WriteString("/")
 	self.LocalNamespacePath.ToString(buf)
 }
 
 func (self *CimNamespacePath) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -777,16 +786,19 @@ func (self *CimLocalNamespacePath) IsNil() bool {
 	return 0 == len(self.Namespaces)
 }
 
-func (self *CimLocalNamespacePath) ToString(buf *bytes.Buffer) {
+func (self *CimLocalNamespacePath) ToString(buf *strings.Builder) {
 	if 0 != len(self.Namespaces) {
-		for _, nm := range self.Namespaces {
+		for idx, nm := range self.Namespaces {
+			if idx > 0 {
+				buf.WriteString("/")
+			}
 			buf.WriteString(nm.Name)
 		}
 	}
 }
 
 func (self *CimLocalNamespacePath) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -841,14 +853,14 @@ func (self *CimClassPath) IsNil() bool {
 	return self.NamespacePath.IsNil()
 }
 
-func (self *CimClassPath) ToString(buf *bytes.Buffer) {
+func (self *CimClassPath) ToString(buf *strings.Builder) {
 	self.NamespacePath.ToString(buf)
 	buf.WriteRune(':')
 	buf.WriteString(self.ClassName.Name)
 }
 
 func (self *CimClassPath) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -875,14 +887,14 @@ func (self *CimLocalClassPath) IsNil() bool {
 	return self.NamespacePath.IsNil()
 }
 
-func (self *CimLocalClassPath) ToString(buf *bytes.Buffer) {
+func (self *CimLocalClassPath) ToString(buf *strings.Builder) {
 	self.NamespacePath.ToString(buf)
 	buf.WriteRune(':')
 	buf.WriteString(self.ClassName.Name)
 }
 
 func (self *CimLocalClassPath) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -899,6 +911,10 @@ func (self *CimLocalClassPath) String() string {
 type CimClassName struct {
 	XMLName xml.Name `xml:"CLASSNAME"`
 	Name    string   `xml:"NAME,attr"`
+}
+
+func (self *CimClassName) String() string {
+	return self.Name
 }
 
 //     <xs:element name="INSTANCEPATH">
@@ -923,7 +939,7 @@ func (self *CimInstancePath) IsNil() bool {
 	return self.NamespacePath.IsNil()
 }
 
-func (self *CimInstancePath) ToString(buf *bytes.Buffer) {
+func (self *CimInstancePath) ToString(buf *strings.Builder) {
 	self.NamespacePath.ToString(buf)
 	if self.InstanceName.IsTyped() {
 		buf.WriteString("/(instance)")
@@ -934,7 +950,7 @@ func (self *CimInstancePath) ToString(buf *bytes.Buffer) {
 }
 
 func (self *CimInstancePath) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -961,7 +977,7 @@ func (self *CimLocalInstancePath) IsNil() bool {
 	return self.LocalNamespacePath.IsNil()
 }
 
-func (self *CimLocalInstancePath) ToString(buf *bytes.Buffer) {
+func (self *CimLocalInstancePath) ToString(buf *strings.Builder) {
 	self.LocalNamespacePath.ToString(buf)
 	if self.InstanceName.IsTyped() {
 		buf.WriteString("/(instance)")
@@ -972,7 +988,7 @@ func (self *CimLocalInstancePath) ToString(buf *bytes.Buffer) {
 }
 
 func (self *CimLocalInstancePath) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -1038,7 +1054,7 @@ func (self *CimInstanceName) IsNil() bool {
 	return "" == self.ClassName
 }
 
-func (self *CimInstanceName) ToString(buf *bytes.Buffer) {
+func (self *CimInstanceName) ToString(buf *strings.Builder) {
 	buf.WriteString(self.ClassName)
 	if 0 != len(self.KeyBindings) {
 		buf.WriteString(".")
@@ -1059,7 +1075,7 @@ func (self *CimInstanceName) ToString(buf *bytes.Buffer) {
 }
 
 func (self *CimInstanceName) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -1086,7 +1102,7 @@ func (self *CimObjectPath) IsNil() bool {
 	return nil == self.InstancePath && nil == self.ClassPath
 }
 
-func (self *CimObjectPath) ToString(buf *bytes.Buffer) {
+func (self *CimObjectPath) ToString(buf *strings.Builder) {
 	if nil != self.InstancePath {
 		self.InstancePath.ToString(buf)
 		return
@@ -1099,7 +1115,7 @@ func (self *CimObjectPath) ToString(buf *bytes.Buffer) {
 }
 
 func (self *CimObjectPath) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -1162,7 +1178,7 @@ func (self *CimKeyBinding) IsNil() bool {
 	return "" == self.Name
 }
 
-func (self *CimKeyBinding) ToString(buf *bytes.Buffer) {
+func (self *CimKeyBinding) ToString(buf *strings.Builder) {
 	buf.WriteString(self.Name)
 	buf.WriteString("=")
 
@@ -1178,7 +1194,7 @@ func (self *CimKeyBinding) ToString(buf *bytes.Buffer) {
 }
 
 func (self *CimKeyBinding) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -1193,20 +1209,21 @@ func (self CimKeyBindings) Get(idx int) CIMKeyBinding {
 	return &self[idx]
 }
 
-func (self CimKeyBindings) ToString(buf *bytes.Buffer) {
+func (self CimKeyBindings) ToString(buf *strings.Builder) {
 	if 0 == len(self) {
 		return
 	}
 
-	for _, kb := range self {
+	for idx, kb := range self {
+		if idx > 0 {
+			buf.WriteString(",")
+		}
 		kb.ToString(buf)
-		buf.WriteString(",")
 	}
-	buf.Truncate(buf.Len() - 1)
 }
 
 func (self CimKeyBindings) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -1251,7 +1268,7 @@ func (self *CimKeyValue) GetType() string {
 	return self.ValueType
 }
 
-func (self *CimKeyValue) ToString(buf *bytes.Buffer) {
+func (self *CimKeyValue) ToString(buf *strings.Builder) {
 	t := self.Type
 	if "" == t {
 		t = self.ValueType
@@ -1283,7 +1300,7 @@ func (self *CimKeyValue) ToString(buf *bytes.Buffer) {
 }
 
 func (self *CimKeyValue) String() string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	self.ToString(&buf)
 	return buf.String()
 }
@@ -1315,6 +1332,16 @@ type CimClass struct {
 	Qualifiers []CimQualifier   `xml:"QUALIFIER,omitempty"`
 	Properties []CimAnyProperty `xml:",any,omitempty"`
 	Methods    []CimMethod      `xml:"METHOD,omitempty"`
+}
+
+func (self *CimClass) ToString(buf *strings.Builder) {
+	xml.NewEncoder(buf).Encode(self)
+}
+
+func (self *CimClass) String() string {
+	var sb strings.Builder
+	self.ToString(&sb)
+	return sb.String()
 }
 
 type CimAnyProperty struct {
@@ -1472,6 +1499,16 @@ func (self *CimInstance) GetPropertyByNameAndOrigin(name, originClass string) CI
 
 func (self *CimInstance) GetPropertyCount() int {
 	return len(self.Properties)
+}
+
+func (self *CimInstance) ToString(buf *strings.Builder) {
+	xml.NewEncoder(buf).Encode(self)
+}
+
+func (self *CimInstance) String() string {
+	var sb strings.Builder
+	self.ToString(&sb)
+	return sb.String()
 }
 
 //     <xs:element name="QUALIFIER">
@@ -2043,6 +2080,45 @@ type CimParamValue struct {
 	Class              *CimClass              `xml:"CLASS,omitempty"`
 	Instance           *CimInstance           `xml:"INSTANCE,omitempty"`
 	ValueNamedInstance *CimValueNamedInstance `xml:"VALUE.NAMEDINSTANCE,omitempty"`
+}
+
+func (paramValue *CimParamValue) GetName() string {
+	return paramValue.Name
+}
+
+func (paramValue *CimParamValue) GetParamType() string {
+	return paramValue.ParamType
+}
+
+func (paramValue *CimParamValue) GetValue() Valuer {
+	if paramValue.Value == nil {
+		return paramValue.Value
+	}
+	if paramValue.ValueReference == nil {
+		return paramValue.ValueReference
+	}
+	if paramValue.ValueArray == nil {
+		return paramValue.ValueArray
+	}
+	if paramValue.ValueRefArray == nil {
+		return paramValue.ClassName
+	}
+	if paramValue.ClassName == nil {
+		return paramValue.ClassName
+	}
+	if paramValue.InstanceName == nil {
+		return paramValue.InstanceName
+	}
+	if paramValue.Class == nil {
+		return paramValue.Class
+	}
+	if paramValue.Instance == nil {
+		return paramValue.Instance
+	}
+	if paramValue.ValueNamedInstance == nil {
+		return paramValue.ValueNamedInstance
+	}
+	return nil
 }
 
 //     <xs:element name="IMETHODCALL">

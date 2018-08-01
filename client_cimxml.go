@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"strings"
 	"time"
 )
 
@@ -16,6 +15,8 @@ var (
 	simpleReqNotExists           = errors.New("CIM.MESSAGE.SIMPLERSP isn't exists.")
 	imethodResponseNotExists     = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE isn't exists.")
 	ireturnValueNotExists        = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE isn't exists.")
+	methodResponseNotExists      = errors.New("CIM.MESSAGE.SIMPLERSP.METHODRESPONSE isn't exists.")
+	returnValueNotExists         = errors.New("CIM.MESSAGE.SIMPLERSP.METHODRESPONSE.RETURNVALUE isn't exists.")
 	instancePathNotExists        = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.INSTANCEPATH isn't exists.")
 	instanceNamesNotExists       = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.INSTANCENAME isn't exists.")
 	classNamesNotExists          = errors.New("CIM.MESSAGE.SIMPLERSP.IMETHODRESPONSE.RETURNVALUE.CLASSNAME isn't exists.")
@@ -193,7 +194,7 @@ func (c *ClientCIMXML) EnumerateClassNames(ctx context.Context, namespaceName, c
 			"namespace name is empty.")
 	}
 
-	names := strings.Split(namespaceName, "/")
+	names := SplitNamespaces(namespaceName)
 	namespaces := make([]CimNamespace, len(names))
 	for idx, name := range names {
 		namespaces[idx].Name = name
@@ -278,7 +279,7 @@ func (c *ClientCIMXML) EnumerateInstanceNames(ctx context.Context, namespaceName
 			"class name is empty.")
 	}
 
-	names := strings.Split(namespaceName, "/")
+	names := SplitNamespaces(namespaceName)
 	namespaces := make([]CimNamespace, len(names))
 	for idx, name := range names {
 		namespaces[idx].Name = name
@@ -385,7 +386,7 @@ func (c *ClientCIMXML) GetInstanceByInstanceName(ctx context.Context, namespaceN
 			"class name is empty.")
 	}
 
-	names := strings.Split(namespaceName, "/")
+	names := SplitNamespaces(namespaceName)
 	namespaces := make([]CimNamespace, len(names))
 	for idx, name := range names {
 		namespaces[idx].Name = name
@@ -498,7 +499,7 @@ func (c *ClientCIMXML) EnumerateInstances(ctx context.Context, namespaceName, cl
 			"class name is empty.")
 	}
 
-	names := strings.Split(namespaceName, "/")
+	names := SplitNamespaces(namespaceName)
 	namespaces := make([]CimNamespace, len(names))
 	for idx, name := range names {
 		namespaces[idx].Name = name
@@ -612,7 +613,7 @@ func (c *ClientCIMXML) GetClass(ctx context.Context, namespaceName string, class
 			"class name is empty.")
 	}
 
-	names := strings.Split(namespaceName, "/")
+	names := SplitNamespaces(namespaceName)
 	namespaces := make([]CimNamespace, len(names))
 	for idx, name := range names {
 		namespaces[idx].Name = name
@@ -716,7 +717,7 @@ func (c *ClientCIMXML) EnumerateClasses(ctx context.Context, namespaceName strin
 			"namespace name is empty.")
 	}
 
-	names := strings.Split(namespaceName, "/")
+	names := SplitNamespaces(namespaceName)
 	namespaces := make([]CimNamespace, len(names))
 	for idx, name := range names {
 		namespaces[idx].Name = name
@@ -825,7 +826,7 @@ func (c *ClientCIMXML) AssociatorNames(ctx context.Context, namespaceName string
 			"class name is empty.")
 	}
 
-	names := strings.Split(namespaceName, "/")
+	names := SplitNamespaces(namespaceName)
 	namespaces := make([]CimNamespace, len(names))
 	for idx, name := range names {
 		namespaces[idx].Name = name
@@ -937,7 +938,7 @@ func (c *ClientCIMXML) AssociatorInstances(ctx context.Context, namespaceName st
 			"class name is empty.")
 	}
 
-	names := strings.Split(namespaceName, "/")
+	names := SplitNamespaces(namespaceName)
 	namespaces := make([]CimNamespace, len(names))
 	for idx, name := range names {
 		namespaces[idx].Name = name
@@ -1072,7 +1073,7 @@ func (c *ClientCIMXML) AssociatorClasses(ctx context.Context, namespaceName, cla
 			"class name is empty.")
 	}
 
-	names := strings.Split(namespaceName, "/")
+	names := SplitNamespaces(namespaceName)
 	namespaces := make([]CimNamespace, len(names))
 	for idx, name := range names {
 		namespaces[idx].Name = name
@@ -1223,7 +1224,7 @@ func (c *ClientCIMXML) ReferenceNames(ctx context.Context, namespaceName string,
 			"key bindings is empty.")
 	}
 
-	names := strings.Split(namespaceName, "/")
+	names := SplitNamespaces(namespaceName)
 	namespaces := make([]CimNamespace, len(names))
 	for idx, name := range names {
 		namespaces[idx].Name = name
@@ -1321,7 +1322,7 @@ func (c *ClientCIMXML) ReferenceInstances(ctx context.Context, namespaceName str
 			"class name is empty.")
 	}
 
-	names := strings.Split(namespaceName, "/")
+	names := SplitNamespaces(namespaceName)
 	namespaces := make([]CimNamespace, len(names))
 	for idx, name := range names {
 		namespaces[idx].Name = name
@@ -1443,7 +1444,7 @@ func (c *ClientCIMXML) ReferenceClasses(ctx context.Context, namespaceName, clas
 			"class name is empty.")
 	}
 
-	names := strings.Split(namespaceName, "/")
+	names := SplitNamespaces(namespaceName)
 	namespaces := make([]CimNamespace, len(names))
 	for idx, name := range names {
 		namespaces[idx].Name = name
@@ -1561,6 +1562,123 @@ func (c *ClientCIMXML) ReferenceClasses(ctx context.Context, namespaceName, clas
 		}
 	}
 	return results, nil
+}
+
+func (c *ClientCIMXML) InvokeMethod(ctx context.Context, namespaceName string,
+	instanceName CIMInstanceName, methodName string, inParams []CIMParamValue) (interface{}, []CIMParamValue, error) {
+	if "" == namespaceName {
+		return nil, nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
+			"namespace name is empty.")
+	}
+
+	if "" == instanceName.GetClassName() {
+		return nil, nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
+			"class name is empty.")
+	}
+
+	names := SplitNamespaces(namespaceName)
+	namespaces := make([]CimNamespace, len(names))
+	for idx, name := range names {
+		namespaces[idx].Name = name
+	}
+
+	var paramValues []CimParamValue
+	if len(inParams) > 0 {
+		paramValues = make([]CimParamValue, 0, len(inParams))
+		for _, paramValue := range inParams {
+			paramValues = append(paramValues, *paramValue.(*CimParamValue))
+		}
+	}
+
+	// 	if "" != resultClass {
+	// 	paramValues = append(paramValues, CimParamValue{
+	// 		Name:      "ResultClass",
+	// 		ClassName: &CimClassName{Name: resultClass},
+	// 	})
+	// }
+
+	// if "" != role {
+	// 	paramValues = append(paramValues, CimParamValue{
+	// 		Name:  "Role",
+	// 		Value: &CimValue{Value: role},
+	// 	})
+	// }
+
+	localInstancePath := CimLocalInstancePath{
+		LocalNamespacePath: CimLocalNamespacePath{Namespaces: namespaces},
+		InstanceName:       *instanceName.(*CimInstanceName),
+	}
+
+	simpleReq := &CimSimpleReq{MethodCall: &CimMethodCall{
+		Name:              methodName,
+		LocalInstancePath: &localInstancePath,
+		ParamValues:       paramValues,
+	}}
+
+	req := &CIM{
+		CimVersion: c.CimVersion,
+		DtdVersion: c.DtdVersion,
+		Message: &CimMessage{
+			Id:              c.generateId(),
+			ProtocolVersion: c.ProtocolVersion,
+			SimpleReq:       simpleReq,
+		},
+		//Declaration: &CimDeclaration,
+	}
+
+	resp := &CIM{hasFault: func(cim *CIM) error {
+		if nil == cim.Message {
+			return messageNotExists
+		}
+		if nil == cim.Message.SimpleRsp {
+			return simpleReqNotExists
+		}
+		if nil == cim.Message.SimpleRsp.MethodResponse {
+			return methodResponseNotExists
+		}
+		if nil != cim.Message.SimpleRsp.MethodResponse.Error {
+			e := cim.Message.SimpleRsp.MethodResponse.Error
+			return WBEMException(CIMStatusCode(e.Code), e.Description)
+		}
+		if nil == cim.Message.SimpleRsp.MethodResponse.ReturnValue {
+			return returnValueNotExists
+		}
+		// if 0 == len(cim.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances) {
+		// 	return classesNotExists
+		// }
+		return nil
+	}}
+
+	// CIMProtocolVersion: 1.0
+	// CIMOperation: MethodCall
+	// CIMMethod: EnumerateClassNames
+	// CIMObject: root%2Fcimv2
+
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+		"CIMOperation": "MethodCall",
+		"CIMMethod":    methodName,
+		"CIMObject":    url.QueryEscape(localInstancePath.String())}, req, resp); nil != err {
+		return nil, nil, err
+	}
+
+	// ReturnValue *CimReturnValue `xml:"RETURNVALUE,omitempty"`
+	// ParamValues []CimParamValue `xml:"PARAMVALUE,omitempty"`
+
+	var outParams []CIMParamValue
+
+	if len(resp.Message.SimpleRsp.MethodResponse.ParamValues) > 0 {
+		outParams = make([]CIMParamValue, 0, len(resp.Message.SimpleRsp.MethodResponse.ParamValues))
+	}
+	for idx := range resp.Message.SimpleRsp.MethodResponse.ParamValues {
+		outParams = append(outParams, &resp.Message.SimpleRsp.MethodResponse.ParamValues[idx])
+	}
+
+	if value := resp.Message.SimpleRsp.MethodResponse.ReturnValue.Value; value != nil {
+		return value, outParams, nil
+	} else if valueReference := resp.Message.SimpleRsp.MethodResponse.ReturnValue.ValueReference; valueReference != nil {
+		return valueReference.String(), outParams, nil
+	}
+	return nil, outParams, nil
 }
 
 func NewClientCIMXML(u *url.URL, insecure bool) (*ClientCIMXML, error) {

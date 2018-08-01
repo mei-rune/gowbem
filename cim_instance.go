@@ -136,6 +136,16 @@ type CIMInstance interface {
 	GetPropertyCount() int
 }
 
+type CIMParamValue interface {
+	GetName() string
+	GetParamType() string
+	GetValue() Valuer
+}
+
+type Valuer interface {
+	String() string
+}
+
 type CIMKeyBinding interface {
 	GetName() string
 	GetType() CIMType

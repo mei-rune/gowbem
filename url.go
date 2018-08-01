@@ -22,11 +22,11 @@ const (
 	state_property_value_unqouted
 )
 
-func is_white(c rune) bool {
+func isWhite(c rune) bool {
 	return unicode.IsSpace(c)
 }
 
-func is_name_char(c rune) bool {
+func isNameChar(c rune) bool {
 	if c == '_' || c == '-' ||
 		c >= 'a' && c <= 'z' ||
 		c >= 'A' && c <= 'Z' ||
@@ -42,22 +42,22 @@ func ParseKeyBindings(s string) (keyBindings CimKeyBindings, e error) {
 }
 
 func ParseInstanceName(s string) (*CimInstanceName, error) {
-	ns, class_name, keyBindings, e := parse(s, state_init)
+	ns, className, keyBindings, e := parse(s, state_init)
 	if nil != e {
 		return nil, e
 	}
 	if "" != ns {
-		return nil, errors.New("namespace isn't empty.")
+		return nil, errors.New("namespace isn't empty")
 	}
 
 	return &CimInstanceName{
-		ClassName:   class_name,
+		ClassName:   className,
 		KeyBindings: keyBindings,
 	}, nil
 }
 
 func ParseLocalInstancePath(s string) (*CimLocalInstancePath, error) {
-	ns, class_name, keyBindings, e := parse(s, state_init)
+	ns, className, keyBindings, e := parse(s, state_init)
 	if nil != e {
 		return nil, e
 	}
@@ -65,7 +65,7 @@ func ParseLocalInstancePath(s string) (*CimLocalInstancePath, error) {
 	return &CimLocalInstancePath{
 		LocalNamespacePath: CimLocalNamespacePath{Namespaces: ToCimNamespace(ns)},
 		InstanceName: CimInstanceName{
-			ClassName:   class_name,
+			ClassName:   className,
 			KeyBindings: keyBindings,
 		}}, nil
 }
@@ -82,13 +82,13 @@ func ToCimNamespace(ns string) []CimNamespace {
 	return results
 }
 
-func Parse(s string) (namespace string, class_name string, keyBindings CimKeyBindings, e error) {
+func Parse(s string) (namespace string, className string, keyBindings CimKeyBindings, e error) {
 	return parse(s, state_init)
 }
 
-func parse(s string, state int) (namespace string, class_name string, keyBindings CimKeyBindings, e error) {
+func parse(s string, state int) (namespace string, className string, keyBindings CimKeyBindings, e error) {
 	var buf bytes.Buffer
-	namespace_last := 0
+	namespaceLast := 0
 	var propertyName string
 	var propertyType string
 
@@ -96,19 +96,19 @@ func parse(s string, state int) (namespace string, class_name string, keyBinding
 	for idx, c := range s {
 		switch state {
 		case state_init:
-			if is_name_char(c) {
+			if isNameChar(c) {
 				continue
 			}
 			if '/' == c {
-				namespace_last = buf.Len()
+				namespaceLast = buf.Len()
 				continue
 			}
 			if '.' == c {
-				if 0 != namespace_last {
-					namespace = s[:namespace_last]
-					class_name = s[namespace_last+1 : idx]
+				if 0 != namespaceLast {
+					namespace = s[:namespaceLast]
+					className = s[namespaceLast+1 : idx]
 				} else {
-					class_name = s[:idx]
+					className = s[:idx]
 				}
 				state = state_property_name_begin
 				continue
@@ -126,7 +126,7 @@ func parse(s string, state int) (namespace string, class_name string, keyBinding
 			state = state_property_name
 			fallthrough
 		case state_property_name:
-			if is_name_char(c) {
+			if isNameChar(c) {
 				buf.WriteRune(c)
 				continue
 			}
@@ -163,7 +163,7 @@ func parse(s string, state int) (namespace string, class_name string, keyBinding
 				state = state_property_value_qouted
 				continue
 			}
-			if is_name_char(c) {
+			if isNameChar(c) {
 				buf.WriteRune(c)
 				state = state_property_value_unqouted
 				continue
@@ -212,7 +212,7 @@ func parse(s string, state int) (namespace string, class_name string, keyBinding
 				continue
 			}
 
-			if is_name_char(c) {
+			if isNameChar(c) {
 				buf.WriteRune(c)
 				continue
 			}
@@ -226,12 +226,12 @@ func parse(s string, state int) (namespace string, class_name string, keyBinding
 
 	switch state {
 	case state_init:
-		if 0 != namespace_last {
+		if 0 != namespaceLast {
 			byteArray := buf.Bytes()
-			namespace = string(byteArray[:namespace_last])
-			class_name = string(byteArray[namespace_last+1:])
+			namespace = string(byteArray[:namespaceLast])
+			className = string(byteArray[namespaceLast+1:])
 		} else {
-			class_name = buf.String()
+			className = buf.String()
 		}
 	//case  state_property_name_begin:
 	case state_property_name,
@@ -253,4 +253,8 @@ func parse(s string, state int) (namespace string, class_name string, keyBinding
 		//state = state_property_name_begin
 	}
 	return
+}
+
+func SplitNamespaces(namespaceName string) []string {
+	return strings.Split(strings.Replace(namespaceName, "\\", "/", -1), "/")
 }

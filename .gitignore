@@ -19,3 +19,5 @@ out/
 *.csr
 *.prof
 *.log
+
+wbem_dump/192.168.1.14/
