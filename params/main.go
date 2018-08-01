@@ -13,7 +13,72 @@ func Value(name, value string) gowbem.CIMParamValue {
 	}
 }
 
-func LocalClassPath(name, namespaceName, className string) gowbem.CIMParamValue {
+func ValueArray(name string, value []interface{}) gowbem.CIMParamValue {
+	values := make([]gowbem.CimValueOrNull, 0, len(value))
+	for idx := range value {
+		if value[idx] == nil {
+			values = append(values, gowbem.CimValueOrNull{Null: &gowbem.CimValueNull{}})
+		} else {
+			values = append(values, gowbem.CimValueOrNull{Value: &gowbem.CimValue{Value: fmt.Sprint(value)}})
+		}
+	}
+	return &gowbem.CimParamValue{
+		Name:       name,
+		ValueArray: &gowbem.CimValueArray{Values: values},
+	}
+}
+
+func ClassName(name, className string) gowbem.CIMParamValue {
+	return &gowbem.CimParamValue{
+		Name:      name,
+		ClassName: &gowbem.CimClassName{Name: className},
+	}
+}
+
+func InstanceName(name string, insName interface{}) gowbem.CIMParamValue {
+	switch v := insName.(type) {
+	case string:
+		instanceName, e := gowbem.ParseInstanceName(v)
+		if e != nil {
+			panic(e)
+		}
+		return &gowbem.CimParamValue{
+			Name:         name,
+			InstanceName: instanceName,
+		}
+
+	case *gowbem.CimInstanceName:
+		return &gowbem.CimParamValue{
+			Name:         name,
+			InstanceName: v,
+		}
+
+	case gowbem.CimInstanceName:
+		return &gowbem.CimParamValue{
+			Name:         name,
+			InstanceName: &v,
+		}
+
+	default:
+		panic(fmt.Errorf("unsupport type '%T' - %#v", insName, insName))
+	}
+}
+
+func Instance(name string, instance gowbem.CIMInstance) gowbem.CIMParamValue {
+	return &gowbem.CimParamValue{
+		Name:     name,
+		Instance: instance.(*gowbem.CimInstance),
+	}
+}
+
+func InstanceWithName(name string, instance gowbem.CIMInstanceWithName) gowbem.CIMParamValue {
+	return &gowbem.CimParamValue{
+		Name:               name,
+		ValueNamedInstance: instance.(*gowbem.CimValueNamedInstance),
+	}
+}
+
+func LocalClassPathReference(name, namespaceName, className string) gowbem.CIMParamValue {
 	names := gowbem.SplitNamespaces(namespaceName)
 	namespaces := make([]gowbem.CimNamespace, len(names))
 	for idx, name := range names {
@@ -31,7 +96,7 @@ func LocalClassPath(name, namespaceName, className string) gowbem.CIMParamValue 
 	}
 }
 
-func ClassName(name, className string) gowbem.CIMParamValue {
+func ClassNameReference(name, className string) gowbem.CIMParamValue {
 	return &gowbem.CimParamValue{
 		Name: name,
 		ValueReference: &gowbem.CimValueReference{
@@ -40,7 +105,7 @@ func ClassName(name, className string) gowbem.CIMParamValue {
 	}
 }
 
-func LocalInstancePath(name, namespaceName string, insName interface{}) gowbem.CIMParamValue {
+func LocalInstancePathReference(name, namespaceName string, insName interface{}) gowbem.CIMParamValue {
 	names := gowbem.SplitNamespaces(namespaceName)
 	namespaces := make([]gowbem.CimNamespace, len(names))
 	for idx, name := range names {
@@ -90,7 +155,7 @@ func LocalInstancePath(name, namespaceName string, insName interface{}) gowbem.C
 	}
 }
 
-func InstanceName(name string, insName interface{}) gowbem.CIMParamValue {
+func InstanceNameReference(name string, insName interface{}) gowbem.CIMParamValue {
 	switch v := insName.(type) {
 	case string:
 		instanceName, e := gowbem.ParseInstanceName(v)
