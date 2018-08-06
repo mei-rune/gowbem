@@ -1565,7 +1565,7 @@ func (c *ClientCIMXML) ReferenceClasses(ctx context.Context, namespaceName, clas
 }
 
 func (c *ClientCIMXML) InvokeMethod(ctx context.Context, namespaceName string,
-	instanceName CIMInstanceName, methodName string, inParams []CIMParamValue) (interface{}, []CIMParamValue, error) {
+	instanceName CIMInstanceName, methodName string, inParams []CIMParamValue) (Valuer, []CIMParamValue, error) {
 	if "" == namespaceName {
 		return nil, nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
 			"namespace name is empty.")
@@ -1676,7 +1676,7 @@ func (c *ClientCIMXML) InvokeMethod(ctx context.Context, namespaceName string,
 	if value := resp.Message.SimpleRsp.MethodResponse.ReturnValue.Value; value != nil {
 		return value, outParams, nil
 	} else if valueReference := resp.Message.SimpleRsp.MethodResponse.ReturnValue.ValueReference; valueReference != nil {
-		return valueReference.String(), outParams, nil
+		return valueReference, outParams, nil
 	}
 	return nil, outParams, nil
 }

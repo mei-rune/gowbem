@@ -559,8 +559,8 @@ func TestInvokeMethod(t *testing.T) {
 		return
 	}
 
-	value = instanceValue.GetPropertyByName("PlannedValue").GetValue()
-	if fmt.Sprint(value) != "test" {
-		t.Error("except is test got ", value)
+	pvalue := instanceValue.GetPropertyByName("PlannedValue").GetValue()
+	if fmt.Sprint(pvalue) != "test" {
+		t.Error("except is test got ", pvalue)
 	}
 }
