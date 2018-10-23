@@ -202,7 +202,7 @@ func (c *Client) roundTrip(ctx context.Context, action string, headers map[strin
 	}
 
 	if DebugEnabled() {
-		b, _ := httputil.DumpRequest(httpreq, false)
+		b, _ := httputil.DumpRequestOut(httpreq, false)
 		dumpWriter = DebugNewFile(fmt.Sprintf("%d-%04d.log", c.cn, num))
 		defer dumpWriter.Close()
 		dumpWriter.Write(b)
