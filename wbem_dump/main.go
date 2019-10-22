@@ -232,7 +232,7 @@ func dumpClass(c *gowbem.ClientCIMXML, ns, className string, instancePaths map[s
 		if e := os.MkdirAll(classPath, 666); e != nil && !os.IsExist(e) {
 			log.Fatalln(e)
 		}
-		if e := ioutil.WriteFile(filepath.Join(classPath, "error.txt"), err.Error(), 666); e != nil {
+		if e := ioutil.WriteFile(filepath.Join(classPath, "error.txt"), []byte(err.Error()), 666); e != nil {
 			log.Fatalln(e)
 		}
 
@@ -246,7 +246,7 @@ func dumpClass(c *gowbem.ClientCIMXML, ns, className string, instancePaths map[s
 	fmt.Println(className, len(instanceNames))
 
 	if len(instanceNames) == 0 {
-		continue
+		return
 	}
 
 	/// @begin 将类定义写到文件
