@@ -130,7 +130,7 @@ func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 		nsPath = strings.Replace(nsPath, "\\", "@", -1)
 
 		/// @begin 将 Qualifier 定义写到文件
-		filename := filepath.Join(*output, nsPath, "1qa.xml")
+		filename := filepath.Join(*output, nsPath, "qa.xml")
 		if err := os.MkdirAll(filepath.Join(*output, nsPath), 666); err != nil && !os.IsExist(err) {
 			log.Fatalln(err)
 		}
