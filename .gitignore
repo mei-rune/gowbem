@@ -21,3 +21,5 @@ out/
 *.log
 
 wbem_dump/192.168.1.14/
+wbem_dump/192.168.1.141/
+wbem_dump/192.168.1.14_old/

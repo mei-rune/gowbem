@@ -87,7 +87,8 @@ func main() {
 	}
 
 	if *classname != "" && *namespace != "" {
-		dumpClass(c, *namespace, *classname)
+		instancePaths := make(map[string]error, 1024)
+		dumpClass(c, *namespace, *classname, instancePaths)
 		return
 	}
 
@@ -118,6 +119,53 @@ func main() {
 }
 
 func dumpNS(c *gowbem.ClientCIMXML, ns string) {
+	qualifiers, e := c.EnumerateQualifierTypes(context.Background(), ns)
+	if nil != e {
+		fmt.Println("枚举 QualifierType 失败，", e)
+		// return
+	}
+
+	if len(qualifiers) > 0 {
+		nsPath := strings.Replace(ns, "/", "#", -1)
+		nsPath = strings.Replace(nsPath, "\\", "@", -1)
+
+		/// @begin 将 Qualifier 定义写到文件
+		filename := filepath.Join(*output, nsPath, "1qa.xml")
+		if err := os.MkdirAll(filepath.Join(*output, nsPath), 666); err != nil && !os.IsExist(err) {
+			log.Fatalln(err)
+		}
+
+		var sb bytes.Buffer
+		sb.WriteString(`<?xml version="1.0"?>
+<CIM CIMVERSION="2.0" DTDVERSION="2.0">
+<DECLARATION>
+<DECLGROUP>`)
+		for idx := range qualifiers {
+			sb.WriteString("\r\n")
+			sb.WriteString(`<VALUE.OBJECT>`)
+			sb.WriteString("\r\n")
+
+			bs, err := xml.MarshalIndent(qualifiers[idx], "", "  ")
+			if err != nil {
+				log.Fatalln(err)
+			}
+			sb.Write(bs)
+
+			sb.WriteString("\r\n")
+			sb.WriteString(`</VALUE.OBJECT>`)
+			sb.WriteString("\r\n")
+		}
+
+		sb.WriteString(`</DECLGROUP>
+</DECLARATION>
+</CIM>`)
+
+		if err := ioutil.WriteFile(filename, sb.Bytes(), 666); err != nil {
+			log.Fatalln(err)
+		}
+		/// @end
+	}
+
 	classNames, e := c.EnumerateClassNames(context.Background(), ns, "", true)
 	if nil != e {
 		if !gowbem.IsErrNotSupported(e) && !gowbem.IsEmptyResults(e) {
@@ -138,6 +186,7 @@ func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 		return
 	}
 
+	instancePaths := make(map[string]error, 1024)
 	fmt.Println("命令空间 ", ns, "下有：", classNames)
 
 	for _, className := range classNames {
@@ -160,18 +209,34 @@ func dumpNS(c *gowbem.ClientCIMXML, ns string) {
 		}
 		/// @end
 
-		dumpClass(c, ns, className)
+		dumpClass(c, ns, className, instancePaths)
+	}
+
+	for key, err := range instancePaths {
+		if err != nil {
+			fmt.Println(key, "获取失败:", err)
+		}
 	}
 }
 
-func dumpClass(c *gowbem.ClientCIMXML, ns, className string) {
+func dumpClass(c *gowbem.ClientCIMXML, ns, className string, instancePaths map[string]error) {
 	nsPath := strings.Replace(ns, "/", "#", -1)
 	nsPath = strings.Replace(nsPath, "\\", "@", -1)
 
 	timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	instanceNames, err := c.EnumerateInstanceNames(timeCtx, ns, className)
 	if err != nil {
-		fmt.Println(className, 0)
+
+		/// @begin 将类定义写到文件
+		classPath := filepath.Join(*output, nsPath)
+		if e := os.MkdirAll(classPath, 666); e != nil && !os.IsExist(e) {
+			log.Fatalln(e)
+		}
+		if e := ioutil.WriteFile(filepath.Join(classPath, "error.txt"), err.Error(), 666); e != nil {
+			log.Fatalln(e)
+		}
+
+		fmt.Println(className, 0, err)
 
 		if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
 			fmt.Println(fmt.Sprintf("%T %v", err, err))
@@ -179,6 +244,10 @@ func dumpClass(c *gowbem.ClientCIMXML, ns, className string) {
 		return
 	}
 	fmt.Println(className, len(instanceNames))
+
+	if len(instanceNames) == 0 {
+		continue
+	}
 
 	/// @begin 将类定义写到文件
 	classPath := filepath.Join(*output, nsPath, className)
@@ -196,9 +265,15 @@ func dumpClass(c *gowbem.ClientCIMXML, ns, className string) {
 	/// @end
 
 	for idx, instanceName := range instanceNames {
+		if _, exists := instancePaths[instanceName.String()]; exists {
+			continue
+		}
+
 		timeCtx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 		instance, err := c.GetInstanceByInstanceName(timeCtx, ns, instanceName, false, true, true, nil)
 		if err != nil {
+			instancePaths[instanceName.String()] = err
+
 			if !gowbem.IsErrNotSupported(err) && !gowbem.IsEmptyResults(err) {
 				fmt.Println(fmt.Sprintf("%T %v", err, err))
 			}
@@ -210,10 +285,18 @@ func dumpClass(c *gowbem.ClientCIMXML, ns, className string) {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		if err := ioutil.WriteFile(filepath.Join(classPath, "instance_"+strconv.Itoa(idx)+".xml"), bs, 666); err != nil {
+
+		subclassPath := filepath.Join(*output, nsPath, instanceName.GetClassName())
+		if err := os.MkdirAll(subclassPath, 666); err != nil && !os.IsExist(err) {
+			log.Fatalln(err)
+		}
+
+		if err := ioutil.WriteFile(filepath.Join(subclassPath, "instance_"+strconv.Itoa(idx)+".xml"), bs, 666); err != nil {
 			log.Fatalln(err)
 		}
 		/// @end
+
+		instancePaths[instanceName.String()] = nil
 
 		// fmt.Println()
 		// fmt.Println()

@@ -1681,6 +1681,82 @@ func (c *ClientCIMXML) InvokeMethod(ctx context.Context, namespaceName string,
 	return nil, outParams, nil
 }
 
+func (c *ClientCIMXML) EnumerateQualifierTypes(ctx context.Context, namespaceName string) ([]CimQualifierDeclaration, error) {
+	if "" == namespaceName {
+		return nil, WBEMException(CIM_ERR_INVALID_PARAMETER,
+			"namespace name is empty.")
+	}
+
+	names := SplitNamespaces(namespaceName)
+	namespaces := make([]CimNamespace, len(names))
+	for idx, name := range names {
+		namespaces[idx].Name = name
+	}
+
+	paramValues := []CimIParamValue{
+		// CimIParamValue{
+		// 	Name:  "LocalOnly",
+		// 	Value: &CimValue{Value: booleanString(localOnly)},
+		// },
+	}
+
+	simpleReq := &CimSimpleReq{IMethodCall: &CimIMethodCall{
+		Name:               "EnumerateQualifiers",
+		LocalNamespacePath: CimLocalNamespacePath{Namespaces: namespaces},
+		ParamValues:        paramValues,
+	}}
+
+	req := &CIM{
+		CimVersion: c.CimVersion,
+		DtdVersion: c.DtdVersion,
+		Message: &CimMessage{
+			Id:              c.generateId(),
+			ProtocolVersion: c.ProtocolVersion,
+			SimpleReq:       simpleReq,
+		},
+		//Declaration: &CimDeclaration,
+	}
+
+	resp := &CIM{hasFault: func(cim *CIM) error {
+		if nil == cim.Message {
+			return messageNotExists
+		}
+		if nil == cim.Message.SimpleRsp {
+			return simpleReqNotExists
+		}
+		if nil == cim.Message.SimpleRsp.IMethodResponse {
+			return imethodResponseNotExists
+		}
+		if nil != cim.Message.SimpleRsp.IMethodResponse.Error {
+			e := cim.Message.SimpleRsp.IMethodResponse.Error
+			return WBEMException(CIMStatusCode(e.Code), e.Description)
+		}
+		if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue {
+			return ireturnValueNotExists
+		}
+		// if 0 == len(cim.Message.SimpleRsp.IMethodResponse.ReturnValue.Classes) &&
+		//    0 == len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.ClassNames) {
+		// 	return classesNotExists
+		// }
+		return nil
+	}}
+
+	// CIMProtocolVersion: 1.0
+	// CIMOperation: MethodCall
+	// CIMMethod: EnumerateQualifiers
+	// CIMObject: root%2Fcimv2
+
+	if err := c.RoundTrip(ctx, "POST", map[string]string{"CIMProtocolVersion": c.ProtocolVersion,
+		"CIMOperation": "MethodCall",
+		"CIMMethod":    "EnumerateQualifiers",
+		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
+		return nil, err
+	}
+
+	results := resp.Message.SimpleRsp.IMethodResponse.ReturnValue.QualifierDeclarations
+	return results, nil
+}
+
 func NewClientCIMXML(u *url.URL, insecure bool) (*ClientCIMXML, error) {
 	c := &ClientCIMXML{}
 	c.init(u, insecure)

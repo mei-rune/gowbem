@@ -2,6 +2,7 @@ package gowbem
 
 import (
 	"encoding/xml"
+	"errors"
 	"net/url"
 	"strconv"
 	"strings"
@@ -201,7 +202,12 @@ func (self *CimAnyDeclGroupWithPath) UnmarshalXML(d *xml.Decoder, start xml.Star
 //         </xs:complexType>
 //     </xs:element>
 type CimQualifierDeclaration struct {
-	CimQualifierFlavor
+	// CimQualifierFlavor {
+	Overridable  bool `xml:"OVERRIDABLE,attr,omitempty"`
+	ToSubclass   bool `xml:"TOSUBCLASS,attr,omitempty"`
+	ToInstance   bool `xml:"TOINSTANCE,attr,omitempty"`
+	Translatable bool `xml:"TRANSLATABLE,attr,omitempty"`
+	// }
 
 	XMLName   xml.Name `xml:"QUALIFIER.DECLARATION"`
 	Name      string   `xml:"NAME,attr"`
@@ -1395,6 +1401,8 @@ func (self *CimAnyProperty) UnmarshalXML(d *xml.Decoder, start xml.StartElement)
 		self.PropertyReference = &CimPropertyReference{}
 		return d.DecodeElement(self.PropertyReference, &start)
 	}
+
+	panic(errors.New("'" + start.Name.Local + "' is unknown xml tag"))
 	return nil
 }
 
@@ -1419,7 +1427,7 @@ func (self *CimAnyProperty) UnmarshalXML(d *xml.Decoder, start xml.StartElement)
 type CimInstance struct {
 	XMLName    xml.Name         `xml:"INSTANCE"`
 	ClassName  string           `xml:"CLASSNAME,attr"`
-	Lang       string           `xml:"xml lang,attr,omitempty"`
+	Lang       string           `xml:"lang,attr,omitempty"`
 	Qualifiers []CimQualifier   `xml:"QUALIFIER,omitempty"`
 	Properties []CimAnyProperty `xml:",any,omitempty"`
 }
@@ -1531,13 +1539,18 @@ func (self *CimInstance) String() string {
 //         </xs:complexType>
 //     </xs:element>
 type CimQualifier struct {
-	CimQualifierFlavor
+	// CimQualifierFlavor {
+	Overridable  bool `xml:"OVERRIDABLE,attr,omitempty"`
+	ToSubclass   bool `xml:"TOSUBCLASS,attr,omitempty"`
+	ToInstance   bool `xml:"TOINSTANCE,attr,omitempty"`
+	Translatable bool `xml:"TRANSLATABLE,attr,omitempty"`
+	// }
 
 	XMLName    xml.Name       `xml:"QUALIFIER"`
 	Name       string         `xml:"NAME,attr"`
 	Type       string         `xml:"TYPE,attr"`
 	Propagated bool           `xml:"PROPAGATED,attr,omitempty"`
-	Lang       string         `xml:"xml lang,attr,omitempty"`
+	Lang       string         `xml:"lang,attr,omitempty"`
 	Value      *CimValue      `xml:"VALUE,omitempty"`
 	ValueArray *CimValueArray `xml:"VALUE.ARRAY,omitempty"`
 }
@@ -1585,7 +1598,7 @@ type CimProperty struct {
 	ClassOrigin    string         `xml:"CLASSORIGIN,attr,omitempty"`
 	Propagated     bool           `xml:"PROPAGATED,attr,omitempty"`
 	EmbeddedObject string         `xml:"EmbeddedObject,attr,omitempty"`
-	Lang           string         `xml:"xml lang,attr,omitempty"`
+	Lang           string         `xml:"lang,attr,omitempty"`
 	Qualifiers     []CimQualifier `xml:"QUALIFIER",omitempty`
 	Value          *CimValue      `xml:"VALUE,omitempty"`
 }
@@ -1660,7 +1673,7 @@ type CimPropertyArray struct {
 	ClassOrigin    string         `xml:"CLASSORIGIN,attr,omitempty"`
 	Propagated     bool           `xml:"PROPAGATED,attr,omitempty"`
 	EmbeddedObject string         `xml:"EmbeddedObject,attr,omitempty"`
-	Lang           string         `xml:"xml lang,attr,omitempty"`
+	Lang           string         `xml:"lang,attr,omitempty"`
 	Qualifiers     []CimQualifier `xml:"QUALIFIER,omitempty"`
 	ValueArray     *CimValueArray `xml:"VALUE.ARRAY,omitempty"`
 }
