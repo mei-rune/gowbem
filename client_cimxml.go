@@ -323,12 +323,12 @@ func (c *ClientCIMXML) EnumerateInstanceNames(ctx context.Context, namespaceName
 			e := cim.Message.SimpleRsp.IMethodResponse.Error
 			return WBEMException(CIMStatusCode(e.Code), e.Description)
 		}
-		if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue {
-			return ireturnValueNotExists
-		}
-		if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue.InstanceNames {
-			return instanceNamesNotExists
-		}
+		// if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue {
+		// 	return ireturnValueNotExists
+		// }
+		// if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue.InstanceNames {
+		// 	return instanceNamesNotExists
+		// }
 		return nil
 	}}
 
@@ -343,7 +343,10 @@ func (c *ClientCIMXML) EnumerateInstanceNames(ctx context.Context, namespaceName
 		"CIMObject":    url.QueryEscape(namespaceName)}, req, resp); nil != err {
 		return nil, err
 	}
-
+	if nil == resp.Message.SimpleRsp.IMethodResponse.ReturnValue ||
+		nil == resp.Message.SimpleRsp.IMethodResponse.ReturnValue.InstanceNames {
+		return nil, nil
+	}
 	results := make([]CIMInstanceName, len(resp.Message.SimpleRsp.IMethodResponse.ReturnValue.InstanceNames))
 	for idx, name := range resp.Message.SimpleRsp.IMethodResponse.ReturnValue.InstanceNames {
 		results[idx] = name

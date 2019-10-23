@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/aryann/difflib"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func makeLocalNamespace(ss []string) *CimLocalNamespacePath {
@@ -333,8 +335,8 @@ var paramValues = []CimParamValue{
 		ParamType:      "string",
 		EmbeddedObject: "instance",
 		Instance: &CimInstance{
-			ClassName:  "a.b.c.class_test_p7",
-			Properties: []CimAnyProperty{},
+			ClassName: "a.b.c.class_test_p7",
+			// Properties: []CimAnyProperty{},
 		},
 	},
 }
@@ -390,29 +392,37 @@ func TestMultiReq(t *testing.T) {
 		return
 	}
 
-	if !reflect.DeepEqual(req, req2) {
-
-		bs2, e := xml.MarshalIndent(req2, "", "  ")
-		if nil != e {
-			t.Error(e)
-			return
-		} else {
-
-			if string(bs) != string(bs2) {
-				t.Errorf("excepted is %#v", req)
-				t.Errorf("actual is %#v", req2)
-				//t.Log(string(bs))
-
-				results := difflib.Diff(strings.Split(string(bs), "\n"), strings.Split(string(bs2), "\n"))
-				if 0 != len(results) {
-					for _, rec := range results {
-						t.Error(rec.String())
-					}
-				}
-			}
-
-		}
+	opts := []cmp.Option{
+		cmpopts.IgnoreFields(xml.Name{}, "Local"),
+		cmpopts.IgnoreUnexported(CIM{}),
 	}
+	if !cmp.Equal(*req, req2, opts...) {
+		t.Error(cmp.Diff(*req, req2, opts...))
+	}
+
+	// if !reflect.DeepEqual(req, req2) {
+
+	// 	bs2, e := xml.MarshalIndent(req2, "", "  ")
+	// 	if nil != e {
+	// 		t.Error(e)
+	// 		return
+	// 	} else {
+
+	// 		if string(bs) != string(bs2) {
+	// 			t.Errorf("excepted is %#v", req)
+	// 			t.Errorf("actual is %#v", req2)
+	// 			//t.Log(string(bs))
+
+	// 			results := difflib.Diff(strings.Split(string(bs), "\n"), strings.Split(string(bs2), "\n"))
+	// 			if 0 != len(results) {
+	// 				for _, rec := range results {
+	// 					t.Error(rec.String())
+	// 				}
+	// 			}
+	// 		}
+
+	// 	}
+	// }
 }
 
 var simple_rsp1 = CimSimpleRsp{
@@ -584,32 +594,42 @@ func TestCimClass(t *testing.T) {
 		return
 	}
 
-	if !reflect.DeepEqual(class, cls2) {
-
-		bs2, e := xml.MarshalIndent(cls2, "", "  ")
-		if nil != e {
-
-			t.Errorf("excepted is %#v", class)
-			t.Errorf("actual is %#v", cls2)
-			t.Error(e)
-			return
-		} else {
-
-			if string(bs) != string(bs2) {
-
-				t.Errorf("excepted is %#v", class)
-				t.Errorf("actual is %#v", cls2)
-				//t.Log(string(bs))
-
-				results := difflib.Diff(strings.Split(string(bs), "\n"), strings.Split(string(bs2), "\n"))
-				if 0 != len(results) {
-					for _, rec := range results {
-						t.Error(rec.String())
-					}
-				}
-			}
-		}
+	// if strings.Contains(class, "a") {
+	// 	t.Log(class)
+	// }
+	opts := []cmp.Option{
+		cmpopts.IgnoreFields(xml.Name{}, "Local"),
 	}
+	if !cmp.Equal(*class, cls2, opts...) {
+		t.Error(cmp.Diff(*class, cls2, opts...))
+	}
+
+	// if !reflect.DeepEqual(class, cls2) {
+
+	// 	bs2, e := xml.MarshalIndent(cls2, "", "  ")
+	// 	if nil != e {
+
+	// 		t.Errorf("excepted is %#v", class)
+	// 		t.Errorf("actual is %#v", cls2)
+	// 		t.Error(e)
+	// 		return
+	// 	} else {
+
+	// 		//if string(bs) != string(bs2) {
+
+	// 		t.Errorf("excepted is %#v", class)
+	// 		t.Errorf("actual is %#v", cls2)
+	// 		//t.Log(string(bs))
+
+	// 		results := difflib.Diff(strings.Split(string(bs), "\n"), strings.Split(string(bs2), "\n"))
+	// 		if 0 != len(results) {
+	// 			for _, rec := range results {
+	// 				t.Error(rec.String())
+	// 			}
+	// 		}
+	// 		//}
+	// 	}
+	// }
 }
 
 func TestCimValueArray(t *testing.T) {
@@ -862,6 +882,12 @@ var declaration = CimDeclaration{
 				QualifierDeclarations: []CimQualifierDeclaration{
 					CimQualifierDeclaration{Name: "abc"},
 					CimQualifierDeclaration{Name: "abc1",
+						CimQualifierFlavor: CimQualifierFlavor{
+							Overridable:  true,
+							ToSubclass:   true,
+							ToInstance:   true,
+							Translatable: true,
+						},
 						Type:      "string",
 						IsArray:   true,
 						ArraySize: 12,
@@ -956,31 +982,10 @@ func TestCimDeclaration(t *testing.T) {
 		return
 	}
 
-	if !reflect.DeepEqual(declaration, declaration2) {
-
-		// t.Errorf("excepted is %#v", declaration)
-		// t.Errorf("actual is %#v", declaration2)
-
-		bs2, e := xml.MarshalIndent(declaration2, "", "  ")
-		if nil != e {
-
-			t.Errorf("excepted is %#v", declaration)
-			t.Errorf("actual is %#v", declaration2)
-			t.Error(e)
-			return
-		} else {
-
-			if string(bs) != string(bs2) {
-
-				//t.Log(string(bs))
-
-				results := difflib.Diff(strings.Split(string(bs), "\n"), strings.Split(string(bs2), "\n"))
-				if 0 != len(results) {
-					for _, rec := range results {
-						t.Error(rec.String())
-					}
-				}
-			}
-		}
+	opts := []cmp.Option{
+		cmpopts.IgnoreFields(xml.Name{}, "Local"),
+	}
+	if !cmp.Equal(declaration, declaration2, opts...) {
+		t.Error(cmp.Diff(declaration, declaration2, opts...))
 	}
 }

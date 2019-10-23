@@ -202,12 +202,7 @@ func (self *CimAnyDeclGroupWithPath) UnmarshalXML(d *xml.Decoder, start xml.Star
 //         </xs:complexType>
 //     </xs:element>
 type CimQualifierDeclaration struct {
-	// CimQualifierFlavor {
-	Overridable  bool `xml:"OVERRIDABLE,attr,omitempty"`
-	ToSubclass   bool `xml:"TOSUBCLASS,attr,omitempty"`
-	ToInstance   bool `xml:"TOINSTANCE,attr,omitempty"`
-	Translatable bool `xml:"TRANSLATABLE,attr,omitempty"`
-	// }
+	CimQualifierFlavor
 
 	XMLName   xml.Name `xml:"QUALIFIER.DECLARATION"`
 	Name      string   `xml:"NAME,attr"`
@@ -1539,12 +1534,7 @@ func (self *CimInstance) String() string {
 //         </xs:complexType>
 //     </xs:element>
 type CimQualifier struct {
-	// CimQualifierFlavor {
-	Overridable  bool `xml:"OVERRIDABLE,attr,omitempty"`
-	ToSubclass   bool `xml:"TOSUBCLASS,attr,omitempty"`
-	ToInstance   bool `xml:"TOINSTANCE,attr,omitempty"`
-	Translatable bool `xml:"TRANSLATABLE,attr,omitempty"`
-	// }
+	CimQualifierFlavor
 
 	XMLName    xml.Name       `xml:"QUALIFIER"`
 	Name       string         `xml:"NAME,attr"`
