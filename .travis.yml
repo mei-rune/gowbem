@@ -3,7 +3,8 @@ go: "1.10"
 install:
   - export PATH=$PATH:$HOME/gopath/bin
   - go get github.com/aryann/difflib
-  - go get github.com/google/go-cmp
+  - go get github.com/google/go-cmp/cmp
+  - go get github.com/google/go-cmp/cmp/cmpopts
   
 services:
 
