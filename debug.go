@@ -60,7 +60,7 @@ func DebugFlush() {
 type FileDebugProvider struct {
 	Path string
 
-	files []*os.File
+	// files []*os.File
 }
 
 func (fp *FileDebugProvider) NewFile(p string) io.WriteCloser {
@@ -69,13 +69,13 @@ func (fp *FileDebugProvider) NewFile(p string) io.WriteCloser {
 		panic(err)
 	}
 
-	fp.files = append(fp.files, f)
+	// fp.files = append(fp.files, f)
 
 	return f
 }
 
 func (fp *FileDebugProvider) Flush() {
-	for _, f := range fp.files {
-		f.Close()
-	}
+	// for _, f := range fp.files {
+	// 	f.Close()
+	// }
 }
