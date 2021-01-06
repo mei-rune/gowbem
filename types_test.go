@@ -536,6 +536,80 @@ func TestCimError(t *testing.T) {
 	t.Log(unmarshal_rsp.Message.SimpleRsp.IMethodResponse.Error.Description)
 }
 
+func TestCimErrorWithInstance(t *testing.T) {
+	err_txt := `<?xml version="1.0" ?>
+	<CIM CIMVERSION="2.8" DTDVERSION="2.4">
+	<MESSAGE ID="1-5ff5687bdc19411ba0000001" PROTOCOLVERSION="1.4">
+	<SIMPLERSP>
+	<IMETHODRESPONSE NAME="EnumerateInstances">
+	<ERROR CODE="3" DESCRIPTION="CIM namespace &quot;root/cimv2&quot; not found.">
+	<INSTANCE>
+	<INSTANCE CLASSNAME="CIM_Error">
+	<PROPERTY NAME="ErrorType" TYPE="uint16"><VALUE>4</VALUE></PROPERTY>
+	<PROPERTY NAME="OtherErrorType" TYPE="string"></PROPERTY>
+	<PROPERTY NAME="OwningEntity" TYPE="string"><VALUE>DMTF</VALUE></PROPERTY>
+	<PROPERTY NAME="MessageID" TYPE="string"><VALUE>WIPG0204</VALUE></PROPERTY>
+	<PROPERTY NAME="Message" TYPE="string"><VALUE>CIM namespace "root/cimv2" not found.</VALUE></PROPERTY>
+	<PROPERTY.ARRAY NAME="MessageArguments" TYPE="string">
+	<VALUE.ARRAY><VALUE>root/cimv2</VALUE><VALUE>EnumerateClasses</VALUE><VALUE.NULL></VALUE.NULL><VALUE>/root/cimv2</VALUE></VALUE.ARRAY>
+	</PROPERTY.ARRAY>
+	<PROPERTY NAME="PerceivedSeverity" TYPE="uint16"><VALUE>2</VALUE></PROPERTY>
+	<PROPERTY NAME="ProbableCause" TYPE="uint16"><VALUE>0</VALUE></PROPERTY>
+	<PROPERTY NAME="ProbableCauseDescription" TYPE="string"></PROPERTY>
+	<PROPERTY.ARRAY NAME="RecommendedActions" TYPE="string"></PROPERTY.ARRAY>
+	<PROPERTY NAME="ErrorSource" TYPE="string"><VALUE>/root/cimv2</VALUE></PROPERTY>
+	<PROPERTY NAME="ErrorSourceFormat" TYPE="uint16"><VALUE>2</VALUE></PROPERTY>
+	<PROPERTY NAME="OtherErrorSourceFormat" TYPE="string"></PROPERTY>
+	<PROPERTY NAME="CIMStatusCode" TYPE="uint32"><VALUE>3</VALUE></PROPERTY>
+	<PROPERTY NAME="CIMStatusCodeDescription" TYPE="string"><VALUE>CIM_ERR_INVALID_NAMESPACE</VALUE></PROPERTY>
+	</INSTANCE>
+	</INSTANCE>
+	</ERROR>
+	</IMETHODRESPONSE>
+	</SIMPLERSP></MESSAGE></CIM>`
+
+	var unmarshal_rsp = CIM{hasFault: func(cim *CIM) error {
+		if nil == cim.Message {
+			return messageNotExists
+		}
+		if nil == cim.Message.SimpleRsp {
+			return simpleReqNotExists
+		}
+		if nil == cim.Message.SimpleRsp.IMethodResponse {
+			return imethodResponseNotExists
+		}
+
+		if nil != cim.Message.SimpleRsp.IMethodResponse.Error {
+			e := cim.Message.SimpleRsp.IMethodResponse.Error
+			return WBEMException(CIMStatusCode(e.Code), e.Description)
+		}
+
+		if nil == cim.Message.SimpleRsp.IMethodResponse.ReturnValue {
+			return ireturnValueNotExists
+		}
+		// if 0 == len(cim.Message.SimpleRsp.IMethodResponse.ReturnValue.Instances) {
+		// 	return classesNotExists
+		// }
+		return nil
+	}}
+
+	if e := xml.Unmarshal([]byte(err_txt), &unmarshal_rsp); nil != e {
+		t.Error(e)
+		return
+	}
+
+	//fmt.Println(unmarshal_rsp.Fault())
+	//if unmarshal_rsp.Fault() {
+	//}
+
+	if 3 != unmarshal_rsp.Message.SimpleRsp.IMethodResponse.Error.Code {
+		t.Error("code is error")
+		return
+	}
+
+	t.Log(unmarshal_rsp.Message.SimpleRsp.IMethodResponse.Error.Description)
+}
+
 var class = &CimClass{
 	Name:       "a.b.c.class_test_p7",
 	SuperClass: "a.b.c.class_test_p7_base",

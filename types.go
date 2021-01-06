@@ -2274,10 +2274,15 @@ type CimIMethodResponse struct {
 //         </xs:complexType>
 //     </xs:element>
 type CimError struct {
-	XMLName     xml.Name      `xml:"ERROR"`
-	Code        int           `xml:"CODE,attr"`
-	Description string        `xml:"DESCRIPTION,attr,omitempty"`
-	Instance    []CimInstance `xml:"INSTANCE,omitempty"`
+	XMLName     xml.Name         `xml:"ERROR"`
+	Code        int              `xml:"CODE,attr"`
+	Description string           `xml:"DESCRIPTION,attr,omitempty"`
+	Instance    CimInstanceArray `xml:"INSTANCE,omitempty"`
+}
+
+type CimInstanceArray struct {
+	XMLName  xml.Name      `xml:"INSTANCE"`
+	Instance []CimInstance `xml:",any,omitempty"`
 }
 
 //     <xs:element name="RETURNVALUE">
