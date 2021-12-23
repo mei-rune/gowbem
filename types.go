@@ -610,6 +610,14 @@ func (self *CimValueNamedInstance) String() string {
 	return sb.String()
 }
 
+func ToCimInstanceName(name CIMInstanceName) CimInstanceName {
+	return *name.(*CimInstanceName)
+}
+
+func ToCimInstance(instance CIMInstance) CimInstance {
+	return *instance.(*CimInstance)
+}
+
 //     <xs:element name="VALUE.NAMEDOBJECT">
 //         <xs:annotation>
 //             <xs:documentation>Defines a value that comprises a named CIM object (class or instance) definition.
