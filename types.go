@@ -410,7 +410,21 @@ type CimValueReference struct {
 }
 
 func (self *CimValueReference) GetValue() interface{} {
-	return self.String()
+	if nil != self.ClassPath {
+		return self.ClassPath
+	} else if nil != self.LocalClassPath {
+		return self.LocalClassPath
+	} else if nil != self.ClassName {
+		return self.ClassName.Name
+	} else if nil != self.InstancePath {
+		return self.InstancePath
+	} else if nil != self.LocalInstancePath {
+		return self.LocalInstancePath
+	} else if nil != self.InstanceName {
+		return self.InstanceName
+	} else {
+		return nil
+	}
 }
 
 func (self *CimValueReference) IsNil() bool {
@@ -1610,10 +1624,7 @@ func (self *CimProperty) GetType() CIMType {
 }
 
 func (self *CimProperty) GetValue() interface{} {
-	if nil == self.Value {
-		return nil
-	}
-	return self.Value.GetValue()
+	return self.Value
 }
 
 func (self *CimProperty) GetOriginClass() string {
@@ -1685,16 +1696,16 @@ func (self *CimPropertyArray) GetType() CIMType {
 }
 
 func (self *CimPropertyArray) GetValue() interface{} {
-	if nil == self.ValueArray {
-		return nil
-	}
+	// if nil == self.ValueArray {
+	// 	return nil
+	// }
 	// results := make([]interface{}, len(self.ValueArray))
 	// for idx, v := range self.ValueArray {
 	// 	if nil != v.Value {
 	// 		results[idx] = v.Value.GetValue()
 	// 	}
 	// }
-	return self.ValueArray.GetValue()
+	return self.ValueArray
 }
 
 func (self *CimPropertyArray) GetOriginClass() string {
@@ -1760,10 +1771,10 @@ func (self *CimPropertyReference) GetType() CIMType {
 }
 
 func (self *CimPropertyReference) GetValue() interface{} {
-	if nil == self.ValueReference {
-		return nil
-	}
-	return self.ValueReference.GetValue()
+	// if nil == self.ValueReference {
+	// 	return nil
+	// }
+	return self.ValueReference
 }
 
 func (self *CimPropertyReference) GetOriginClass() string {
