@@ -338,7 +338,7 @@ func (self *CimValueOrNull) GetValue() interface{} {
 	if nil == self.Value {
 		return nil
 	}
-	return self.Value.Value
+	return self.Value.GetValue()
 }
 
 func (self *CimValueOrNull) IsNil() bool {
@@ -1624,6 +1624,9 @@ func (self *CimProperty) GetType() CIMType {
 }
 
 func (self *CimProperty) GetValue() interface{} {
+	if self.Value == nil {
+		return nil
+	}
 	return self.Value
 }
 
@@ -1696,9 +1699,9 @@ func (self *CimPropertyArray) GetType() CIMType {
 }
 
 func (self *CimPropertyArray) GetValue() interface{} {
-	// if nil == self.ValueArray {
-	// 	return nil
-	// }
+	if nil == self.ValueArray {
+		return nil
+	}
 	// results := make([]interface{}, len(self.ValueArray))
 	// for idx, v := range self.ValueArray {
 	// 	if nil != v.Value {
@@ -1771,9 +1774,9 @@ func (self *CimPropertyReference) GetType() CIMType {
 }
 
 func (self *CimPropertyReference) GetValue() interface{} {
-	// if nil == self.ValueReference {
-	// 	return nil
-	// }
+	if nil == self.ValueReference {
+		return nil
+	}
 	return self.ValueReference
 }
 
