@@ -1702,13 +1702,13 @@ func (self *CimPropertyArray) GetValue() interface{} {
 	if nil == self.ValueArray {
 		return nil
 	}
-	results := make([]interface{}, len(self.ValueArray))
-	for idx, v := range self.ValueArray {
-		if nil != v.Value {
-			results[idx] = v.Value.GetValue()
-		}
-	}
-	return results
+	// results := make([]interface{}, len(self.ValueArray))
+	// for idx, v := range self.ValueArray {
+	// 	if nil != v.Value {
+	// 		results[idx] = v.Value.GetValue()
+	// 	}
+	// }
+	return self.ValueArray.GetValue()
 }
 
 func (self *CimPropertyArray) GetOriginClass() string {
